@@ -45,10 +45,74 @@ let currentScreen = [];
 let spinButtonEl;
 let betTxt;
 const buttons = {};
-
+let logoImage;
 const game = new Phaser.Game(config);
+let balance;
+let currency;
 
 function preload() {
+  this.load.image("logo", "assets/logo.png");
+  const { width, height } = this.cameras.main;
+  const offset = 100;
+  const progressBar = this.add.graphics();
+  const progressBox = this.add.graphics();
+  progressBox.fillStyle(0x222222, 0.8);
+  progressBox.fillRect(width / 2 - 160, height / 2 + offset - 20, 320, 40);
+  const loadingText = this.add
+    .text(width / 2, height / 2 + offset - 50, "Dropping in...", {
+      fontSize: "20px",
+      color: "#ffffff",
+    })
+    .setOrigin(0.5);
+
+  this.load.once("filecomplete-image-logo", () => {
+    logoImage = this.add
+      .image(width / 2, height / 2 - 100, "logo")
+      .setOrigin(0.5);
+  });
+  const board = this.add.rectangle(
+    width / 2 - 150,
+    height / 2 + offset,
+    60,
+    10,
+    0xffffff,
+  );
+  const wheelLeft = this.add.circle(
+    board.x - 20,
+    height / 2 + offset + 8,
+    5,
+    0x000000,
+  );
+  const wheelRight = this.add.circle(
+    board.x + 20,
+    height / 2 + offset + 8,
+    5,
+    0x000000,
+  );
+
+  this.load.on("progress", (value) => {
+    progressBar.clear();
+    progressBar.fillStyle(0xff6600, 1);
+    progressBar.fillRect(
+      width / 2 - 150,
+      height / 2 + offset - 10,
+      300 * value,
+      20,
+    );
+    board.x = width / 2 - 150 + 300 * value;
+    wheelLeft.x = board.x - 20;
+    wheelRight.x = board.x + 20;
+  });
+
+  this.load.on("complete", () => {
+    progressBar.destroy();
+    progressBox.destroy();
+    loadingText.destroy();
+    board.destroy();
+    wheelLeft.destroy();
+    wheelRight.destroy();
+  });
+
   this.load.image("skateboard", "assets/sliced_skate_image_1.png");
   this.load.image("skate", "assets/sliced_skate_image_2.png");
   this.load.image("helmet", "assets/sliced_skate_image_3.png");
@@ -64,8 +128,31 @@ function preload() {
   this.load.audio("reelStop", "sounds/slotalign.wav");
 }
 
-async function create() {
+function create() {
+  const { width, height } = this.cameras.main;
+  const continueText = this.add
+    .text(width / 2, height / 2 + 60, "CONTINUE", {
+      fontSize: "32px",
+      color: "#ffffff",
+      backgroundColor: "#222222",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive();
+
+  continueText.on("pointerdown", () => {
+    if (logoImage) {
+      logoImage.destroy();
+    }
+    continueText.destroy();
+    startGame.call(this);
+  });
+}
+
+async function startGame() {
+  document.getElementById("ui").classList.remove("loading");
   const initData = await apiInit();
+  currency = initData.options.currency;
   availableBets = initData.options.available_bets;
   currentBetIndex = Math.max(
     0,
@@ -96,57 +183,48 @@ async function create() {
     reels.push(reel);
   }
 
-  // balanceText = this.add.text(20, 20, `Balance: ${initData.balance.wallet}`, {
-  //   fontSize: "24px",
-  //   fill: "#fff",
-  // });
-
   balanceText = document.getElementById("balanceValue");
-  balanceText.textContent = initData.balance.wallet;
-  // betText = this.add.text(20, 50, `Bet: ${currentBet}`, {
-  //   fontSize: "24px",
-  //   fill: "#fff",
-  // });
-  // this.add
-  //   .text(120, 50, "<", { fontSize: "24px", fill: "#fff" })
-  //   .setInteractive()
-  //   .on("pointerdown", () => {
-  //     currentBetIndex =
-  //       (currentBetIndex - 1 + availableBets.length) % availableBets.length;
-  //     currentBet = availableBets[currentBetIndex];
-  //     betText.setText(`Bet: ${currentBet}`);
-  //   });
-  // this.add
-  //   .text(150, 50, ">", { fontSize: "24px", fill: "#fff" })
-  //   .setInteractive()
-  //   .on("pointerdown", () => {
-  //     currentBetIndex = (currentBetIndex + 1) % availableBets.length;
-  //     currentBet = availableBets[currentBetIndex];
-  //     betText.setText(`Bet: ${currentBet}`);
-  //   });
-
+  balance = initData.balance.wallet;
+  balanceText.textContent = `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`;
   betText = document.getElementById("betValue");
-
+  updateUI();
   buttons.betUp = document.getElementById("betUp");
   buttons.betDown = document.getElementById("betDown");
   buttons.betUp.addEventListener("click", () => {
     currentBetIndex = (currentBetIndex + 1) % availableBets.length;
     currentBet = availableBets[currentBetIndex];
-    // betText.setText(`Bet: ${currentBet}`);
-    betText.textContent = currentBet;
+    updateUI();
   });
   buttons.betDown.addEventListener("click", () => {
     currentBetIndex =
       (currentBetIndex - 1 + availableBets.length) % availableBets.length;
     currentBet = availableBets[currentBetIndex];
-    // betText.setText(`Bet: ${currentBet}`);
-    betText.textContent = currentBet;
+    updateUI();
   });
   spinButtonEl = document.getElementById("spinButton");
-  spinButtonEl.addEventListener("click", () => spin.call(this));
+  spinButtonEl.addEventListener("click", () => {
+    if (isSpinning) {
+      return;
+    }
+    spinButtonEl.classList.add("disabled");
+    apiSpin(currentBet).then((result) => spin.call(this, result));
+  });
 }
 
-async function spin() {
+function updateUI() {
+  balanceText.textContent = `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`;
+  betText.textContent = `${currency.symbol} ${(currentBet / currency.subunits).toFixed(currency.exponent)}`;
+}
+
+async function spin(result) {
+  if (result.error) {
+    // handle error here
+    alert(result.error);
+  }
+  console.log({
+    screen: result.outcome.screen,
+    words: result.outcome.screen.map((r) => r.map((c) => symbolTextures[c])),
+  });
   if (isSpinning) {
     return;
   }
@@ -156,14 +234,13 @@ async function spin() {
   }
   // this.game.canvas.style.filter = "blur(4px)";
 
-  const result = await apiSpin(currentBet);
   finalScreen = result.outcome.screen;
-  balanceText.textContent = `${result.balance.wallet}`;
+  balance = `${result.balance.wallet}`;
 
   for (let c = 0; c < cols; c++) {
     const reel = reels[c];
-    const lastCol = currentScreen.map((row) => row[c]);
-    const finalCol = finalScreen.map((row) => row[c]);
+    const lastCol = currentScreen.map((row) => row[c]).reverse();
+    const finalCol = finalScreen.map((row) => row[c]).reverse();
     const delay = c * 300 + 1000;
     const constantTime = delay / 1000;
     const decelTime = SPIN_SPEED / DECELERATION;
@@ -186,7 +263,7 @@ async function spin() {
     const reel = reels[i];
     reel.speed = SPIN_SPEED;
     reel.spinning = true;
-    const delay = i * 300 + 1000; // this is how long that it runs spinning
+    const delay = i * 300 + 1000;
     reel.stopTime = now + delay;
   }
 }
@@ -246,4 +323,5 @@ function alignReel(reel) {
       ease: "Cubic.easeOut",
     });
   }
+  updateUI();
 }
