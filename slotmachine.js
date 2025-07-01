@@ -38,6 +38,10 @@ let currentBet = 1;
 let balanceText;
 let betText;
 let finalScreen = null;
+let rows = 0;
+let cols = 0;
+let baseReels = [];
+let currentScreen = [];
 
 const game = new Phaser.Game(config);
 
@@ -64,13 +68,22 @@ async function create() {
     availableBets.indexOf(initData.options.default_bet)
   );
   currentBet = availableBets[currentBetIndex];
-  const rows = initData.options.layout.rows;
-  const cols = initData.options.layout.reels;
+  rows = initData.options.layout.rows;
+  cols = initData.options.layout.reels;
+  baseReels = initData.options.reels.main.map((col) => [...col]);
+  currentScreen = initData.options.screen.map((row) => [...row]);
   for (let c = 0; c < cols; c++) {
-    const reel = { sprites: [], speed: 0, stopTime: 0, spinning: false };
+    const reel = {
+      sprites: [],
+      speed: 0,
+      stopTime: 0,
+      spinning: false,
+      order: [],
+      index: 0,
+    };
     const x = START_X + c * REEL_WIDTH;
     for (let r = 0; r < rows; r++) {
-      const id = initData.options.screen[r][c];
+      const id = currentScreen[r][c];
       const y = CENTER_Y + (r - (rows - 1) / 2) * SYMBOL_SPACING;
       const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
       sprite.setScale(0.25);
@@ -122,7 +135,31 @@ async function spin() {
   isSpinning = true;
   this.game.canvas.style.filter = "blur(4px)";
 
-  const outcomePromise = apiSpin(currentBet);
+  const result = await apiSpin(currentBet);
+  finalScreen = result.outcome.screen;
+  balanceText.setText(`Balance: ${result.balance.wallet}`);
+
+  for (let c = 0; c < cols; c++) {
+    const reel = reels[c];
+    const lastCol = currentScreen.map((row) => row[c]);
+    const finalCol = finalScreen.map((row) => row[c]);
+    const delay = c * 300 + 1000;
+    const constantTime = delay / 1000;
+    const decelTime = SPIN_SPEED / DECELERATION;
+    const travel = SPIN_SPEED * constantTime + 0.5 * SPIN_SPEED * decelTime;
+    const loops = Math.max(
+      lastCol.length + finalCol.length,
+      Math.round(travel / (SYMBOL_SPACING * rows))
+    );
+    const randomCount = Math.max(0, loops - lastCol.length - finalCol.length);
+    const randomSymbols = Phaser.Utils.Array.Shuffle([...baseReels[c]]).slice(
+      0,
+      randomCount
+    );
+    reel.order = [...lastCol, ...randomSymbols, ...finalCol];
+    reel.index = 0;
+  }
+
   const now = this.time.now;
   for (let i = 0; i < reels.length; i++) {
     const reel = reels[i];
@@ -131,10 +168,6 @@ async function spin() {
     const delay = i * 300 + 1000;
     reel.stopTime = now + delay;
   }
-
-  const result = await outcomePromise;
-  finalScreen = result.outcome.screen;
-  balanceText.setText(`Balance: ${result.balance.wallet}`);
 }
 
 function update(time, delta) {
@@ -152,9 +185,9 @@ function update(time, delta) {
       sprite.y += reel.speed * (delta / 1000);
       if (sprite.y >= CENTER_Y + SYMBOL_SPACING) {
         sprite.y -= SYMBOL_SPACING * reel.sprites.length;
-        sprite.setTexture(
-          symbolTextures[Math.floor(Math.random() * symbolTextures.length)]
-        );
+        const nextId = reel.order[reel.index % reel.order.length];
+        reel.index++;
+        sprite.setTexture(symbolTextures[parseInt(nextId, 10)]);
       }
     }
     if (time >= reel.stopTime) {
@@ -175,6 +208,10 @@ function update(time, delta) {
   if (!anySpinning) {
     isSpinning = false;
     this.game.canvas.style.filter = "";
+    if (finalScreen) {
+      currentScreen = finalScreen.map((row) => [...row]);
+      finalScreen = null;
+    }
   }
 }
 
