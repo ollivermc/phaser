@@ -49,6 +49,49 @@ const buttons = {};
 const game = new Phaser.Game(config);
 
 function preload() {
+  const { width, height } = this.cameras.main;
+  const progressBar = this.add.graphics();
+  const progressBox = this.add.graphics();
+  progressBox.fillStyle(0x222222, 0.8);
+  progressBox.fillRect(width / 2 - 160, height / 2 - 20, 320, 40);
+  const loadingText = this.add
+    .text(width / 2, height / 2 - 50, "Dropping in...", {
+      fontSize: "20px",
+      color: "#ffffff",
+    })
+    .setOrigin(0.5);
+  let logoImage;
+  this.load.once("filecomplete-image-logo", () => {
+    logoImage = this.add
+      .image(width / 2, height / 2 - 100, "logo")
+      .setOrigin(0.5);
+  });
+  const board = this.add.rectangle(width / 2 - 150, height / 2, 60, 10, 0xffffff);
+  const wheelLeft = this.add.circle(board.x - 20, height / 2 + 8, 5, 0x000000);
+  const wheelRight = this.add.circle(board.x + 20, height / 2 + 8, 5, 0x000000);
+
+  this.load.on("progress", (value) => {
+    progressBar.clear();
+    progressBar.fillStyle(0xff6600, 1);
+    progressBar.fillRect(width / 2 - 150, height / 2 - 10, 300 * value, 20);
+    board.x = width / 2 - 150 + 300 * value;
+    wheelLeft.x = board.x - 20;
+    wheelRight.x = board.x + 20;
+  });
+
+  this.load.on("complete", () => {
+    progressBar.destroy();
+    progressBox.destroy();
+    loadingText.destroy();
+    if (logoImage) {
+      logoImage.destroy();
+    }
+    board.destroy();
+    wheelLeft.destroy();
+    wheelRight.destroy();
+  });
+
+  this.load.image("logo", "assets/logo.png");
   this.load.image("skateboard", "assets/sliced_skate_image_1.png");
   this.load.image("skate", "assets/sliced_skate_image_2.png");
   this.load.image("helmet", "assets/sliced_skate_image_3.png");
@@ -64,7 +107,25 @@ function preload() {
   this.load.audio("reelStop", "sounds/slotalign.wav");
 }
 
-async function create() {
+function create() {
+  const { width, height } = this.cameras.main;
+  const continueText = this.add
+    .text(width / 2, height / 2, "CONTINUE", {
+      fontSize: "32px",
+      color: "#ffffff",
+      backgroundColor: "#222222",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive();
+
+  continueText.on("pointerdown", () => {
+    continueText.destroy();
+    startGame.call(this);
+  });
+}
+
+async function startGame() {
   const initData = await apiInit();
   availableBets = initData.options.available_bets;
   currentBetIndex = Math.max(
