@@ -42,6 +42,7 @@ let rows = 0;
 let cols = 0;
 let baseReels = [];
 let currentScreen = [];
+let spinButtonEl;
 
 const game = new Phaser.Game(config);
 
@@ -122,10 +123,8 @@ async function create() {
       betText.setText(`Bet: ${currentBet}`);
     });
 
-  this.add
-    .text(350, 500, "SPIN", { fontSize: "48px", fill: "#fff" })
-    .setInteractive()
-    .on("pointerdown", () => spin.call(this));
+  spinButtonEl = document.getElementById("spinButton");
+  spinButtonEl.addEventListener("click", () => spin.call(this));
 }
 
 async function spin() {
@@ -133,6 +132,9 @@ async function spin() {
     return;
   }
   isSpinning = true;
+  if (spinButtonEl) {
+    spinButtonEl.classList.add("disabled");
+  }
   this.game.canvas.style.filter = "blur(4px)";
 
   const result = await apiSpin(currentBet);
@@ -202,6 +204,9 @@ function update(time, delta) {
   if (!anySpinning) {
     isSpinning = false;
     this.game.canvas.style.filter = "";
+    if (spinButtonEl) {
+      spinButtonEl.classList.remove("disabled");
+    }
     if (finalScreen) {
       currentScreen = finalScreen.map((row) => [...row]);
       finalScreen = null;
