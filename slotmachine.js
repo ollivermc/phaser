@@ -20,6 +20,7 @@ function preload() {
 }
 const reels = []; // 3 reels
 const symbols = ["seven", "cherry", "bell", "bar"]; // symbol keys you loaded
+let isSpinning = false;
 
 function create() {
   const reelWidth = 150;
@@ -49,10 +50,43 @@ function create() {
   spinButton.setInteractive().on("pointerdown", spin, this);
 }
 function spin() {
+  if (isSpinning) {
+    return;
+  }
+  isSpinning = true;
+
+  let completed = 0;
+  const total = reels.length * reels[0].length;
+
   for (const reel of reels) {
     for (const symbolSprite of reel) {
       const newSymbolKey = Phaser.Utils.Array.GetRandom(symbols);
-      symbolSprite.setTexture(newSymbolKey);
+      const originalY = symbolSprite.y;
+
+      this.tweens.timeline({
+        targets: symbolSprite,
+        tweens: [
+          {
+            y: originalY + 100,
+            duration: 200,
+            ease: "Cubic.easeIn",
+          },
+          {
+            onStart: () => {
+              symbolSprite.setTexture(newSymbolKey);
+            },
+            y: originalY,
+            duration: 200,
+            ease: "Cubic.easeOut",
+          },
+        ],
+        onComplete: () => {
+          completed++;
+          if (completed === total) {
+            isSpinning = false;
+          }
+        },
+      });
     }
   }
 }
