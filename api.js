@@ -4,6 +4,7 @@ const state = {
 };
 
 export async function init() {
+  return await sendRequest("init");
   // return initialize response here, this contains the game info etc.
   const payload = {
     command: "init",
@@ -343,6 +344,11 @@ function getOutcome(betAmount) {
 }
 
 export async function spin(betAmount) {
+  // real api
+  return await sendRequest("spin", {
+    bet: betAmount, // example response is based on bet amount of 1,
+  });
+
   const payload = {
     command: "spin",
     options: {
@@ -364,4 +370,26 @@ export async function spin(betAmount) {
     },
     outcome,
   };
+}
+
+const game = "Chipy";
+
+export async function sendRequest(command, options) {
+  const body = JSON.stringify({ command, options });
+  const response = await fetch(
+    `https://c8b313dee6305bc89d9ea189d17121c7.0x6e.com/game/slots/${game}`,
+    {
+      headers: {
+        accept: "*/*",
+        "accept-language": "en-AU,en-GB;q=0.9,en-US;q=0.8,en;q=0.7",
+        "content-type": "application/json",
+        "X-Csrf-Token": "test-test",
+      },
+      body,
+      method: "POST",
+    },
+  );
+  const data = await response.json();
+  console.log(data);
+  return data;
 }
