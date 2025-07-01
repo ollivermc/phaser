@@ -195,13 +195,7 @@ function update(time, delta) {
       if (reel.speed <= 0) {
         reel.speed = 0;
         reel.spinning = false;
-        const symbolsForReel = [];
-        if (finalScreen) {
-          for (let r = 0; r < reel.sprites.length; r++) {
-            symbolsForReel[r] = finalScreen[r][col];
-          }
-        }
-        alignReel.call(this, reel, symbolsForReel);
+        alignReel.call(this, reel);
       }
     }
   }
@@ -215,14 +209,11 @@ function update(time, delta) {
   }
 }
 
-function alignReel(reel, finalSymbols) {
+function alignReel(reel) {
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
     const targetY = CENTER_Y - SYMBOL_SPACING + i * SYMBOL_SPACING;
-    if (finalSymbols && finalSymbols[i] !== undefined) {
-      sprite.setTexture(symbolTextures[parseInt(finalSymbols[i], 10)]);
-    }
     this.tweens.add({
       targets: sprite,
       y: targetY,
