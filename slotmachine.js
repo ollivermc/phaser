@@ -9,6 +9,11 @@ const config = {
   },
 };
 
+const REEL_WIDTH = 150;
+const START_X = 200;
+const CENTER_Y = 300;
+const SYMBOL_SPACING = 100;
+
 const game = new Phaser.Game(config);
 function preload() {
   // Replace with your symbol images
@@ -23,17 +28,14 @@ const symbols = ["seven", "cherry", "bell", "bar"]; // symbol keys you loaded
 let isSpinning = false;
 
 function create() {
-  const reelWidth = 150;
-  const startX = 200;
-  const centerY = 300;
 
   for (let i = 0; i < 3; i++) {
     const reel = [];
-    const x = startX + i * reelWidth;
+    const x = START_X + i * REEL_WIDTH;
 
     for (let j = 0; j < 3; j++) {
       const symbolKey = Phaser.Utils.Array.GetRandom(symbols);
-      const y = centerY + (j - 1) * 100; // vertical spacing
+      const y = CENTER_Y + (j - 1) * SYMBOL_SPACING; // vertical spacing
       const sprite = this.add.sprite(x, y, symbolKey);
       sprite.setScale(0.25); // scales to 40% of original size
       reel.push(sprite);
@@ -56,34 +58,45 @@ function spin() {
   isSpinning = true;
 
   let completed = 0;
-  const total = reels.length * reels[0].length;
 
   for (const reel of reels) {
-    for (const symbolSprite of reel) {
-      const newSymbolKey = Phaser.Utils.Array.GetRandom(symbols);
-      const originalY = symbolSprite.y;
+    const cycles = Phaser.Math.Between(8, 15);
+    spinReel.call(this, reel, cycles, () => {
+      completed++;
+      if (completed === reels.length) {
+        isSpinning = false;
+      }
+    });
+  }
+}
 
+function spinReel(reel, cycles, onComplete) {
+  const spinStep = () => {
+    let remaining = reel.length;
+    for (const sprite of reel) {
       this.tweens.add({
-        targets: symbolSprite,
-        y: originalY + 100,
-        duration: 200,
-        ease: "Cubic.easeIn",
+        targets: sprite,
+        y: sprite.y + SYMBOL_SPACING,
+        duration: 100,
+        ease: "Cubic.easeInOut",
         onComplete: () => {
-          symbolSprite.setTexture(newSymbolKey);
-          this.tweens.add({
-            targets: symbolSprite,
-            y: originalY,
-            duration: 200,
-            ease: "Cubic.easeOut",
-            onComplete: () => {
-              completed++;
-              if (completed === total) {
-                isSpinning = false;
-              }
-            },
-          });
+          if (sprite.y > CENTER_Y + SYMBOL_SPACING) {
+            sprite.y -= SYMBOL_SPACING * reel.length;
+            sprite.setTexture(Phaser.Utils.Array.GetRandom(symbols));
+          }
+          remaining--;
+          if (remaining === 0) {
+            cycles--;
+            if (cycles > 0) {
+              spinStep();
+            } else if (onComplete) {
+              onComplete();
+            }
+          }
         },
       });
     }
-  }
+  };
+
+  spinStep();
 }
