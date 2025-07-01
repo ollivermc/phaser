@@ -45,6 +45,7 @@ let currentScreen = [];
 let spinButtonEl;
 let betTxt;
 const buttons = {};
+let alignSound;
 
 const game = new Phaser.Game(config);
 
@@ -61,10 +62,12 @@ function preload() {
   this.load.image("scatter_screamer", "assets/scatter_image_2.png");
   this.load.image("scatter_badge", "assets/scatter_image_3.png");
   this.load.image("bonus_helmet", "assets/scatter_image_4.png");
+  this.load.audio("reelStop", "sounds/slotalign.wav");
 }
 
 async function create() {
   const initData = await apiInit();
+  alignSound = this.sound.add("reelStop");
   availableBets = initData.options.available_bets;
   currentBetIndex = Math.max(
     0,
@@ -233,6 +236,9 @@ function update(time, delta) {
 }
 
 function alignReel(reel) {
+  if (alignSound) {
+    alignSound.play();
+  }
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
