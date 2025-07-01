@@ -45,7 +45,6 @@ let currentScreen = [];
 let spinButtonEl;
 let betTxt;
 const buttons = {};
-let alignSound;
 
 const game = new Phaser.Game(config);
 
@@ -67,7 +66,6 @@ function preload() {
 
 async function create() {
   const initData = await apiInit();
-  alignSound = this.sound.add("reelStop");
   availableBets = initData.options.available_bets;
   currentBetIndex = Math.max(
     0,
@@ -236,9 +234,7 @@ function update(time, delta) {
 }
 
 function alignReel(reel) {
-  if (alignSound) {
-    alignSound.play();
-  }
+  this.sound.play("reelStop");
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
