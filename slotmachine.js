@@ -13,8 +13,8 @@ const REEL_WIDTH = 150;
 const START_X = 200;
 const CENTER_Y = 300;
 const SYMBOL_SPACING = 100;
-const SPIN_SPEED = 600; // pixels per second
-const DECELERATION = 200; // pixels per second squared
+const SPIN_SPEED = 1200; // faster initial speed
+const DECELERATION = 600; // stops quickly for ~3s total spin
 
 const game = new Phaser.Game(config);
 function preload() {
@@ -58,6 +58,8 @@ function spin() {
   }
 
   isSpinning = true;
+  // apply a blur effect while spinning
+  this.game.canvas.style.filter = 'blur(4px)';
 
   const now = this.time.now;
 
@@ -66,7 +68,7 @@ function spin() {
     reel.speed = SPIN_SPEED;
     reel.spinning = true;
     // stagger stopping time so reels stop sequentially
-    const delay = i * 700 + Phaser.Math.Between(500, 1000);
+    const delay = i * 300 + 1000;
     reel.stopTime = now + delay;
   }
 }
@@ -98,11 +100,28 @@ function update(time, delta) {
       if (reel.speed <= 0) {
         reel.speed = 0;
         reel.spinning = false;
+        alignReel(reel);
       }
     }
   }
 
   if (!anySpinning) {
     isSpinning = false;
+    // remove blur when spinning stops
+    this.game.canvas.style.filter = '';
+  }
+}
+
+function alignReel(reel) {
+  // snap reel symbols so one is centered
+  let closest = reel.sprites[0];
+  for (const sprite of reel.sprites) {
+    if (Math.abs(sprite.y - CENTER_Y) < Math.abs(closest.y - CENTER_Y)) {
+      closest = sprite;
+    }
+  }
+  const offset = CENTER_Y - closest.y;
+  for (const sprite of reel.sprites) {
+    sprite.y = Math.round(sprite.y + offset);
   }
 }
