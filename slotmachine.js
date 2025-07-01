@@ -100,7 +100,7 @@ function update(time, delta) {
       if (reel.speed <= 0) {
         reel.speed = 0;
         reel.spinning = false;
-        alignReel(reel);
+        alignReel.call(this, reel);
       }
     }
   }
@@ -113,10 +113,16 @@ function update(time, delta) {
 }
 
 function alignReel(reel) {
-  // sort sprites top-to-bottom and snap them to fixed positions
+  // sort sprites top-to-bottom and tween them into final positions
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
+    const sprite = reel.sprites[i];
     const targetY = CENTER_Y - SYMBOL_SPACING + i * SYMBOL_SPACING;
-    reel.sprites[i].y = targetY;
+    this.tweens.add({
+      targets: sprite,
+      y: targetY,
+      duration: 300,
+      ease: 'Cubic.easeOut',
+    });
   }
 }
