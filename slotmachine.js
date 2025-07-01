@@ -19,14 +19,36 @@ const DECELERATION = 600; // stops quickly for ~3s total spin
 const game = new Phaser.Game(config);
 function preload() {
   // Replace with your symbol images
-  this.load.image("seven", "assets/slot_symbol_1.png");
-  this.load.image("cherry", "assets/slot_symbol_2.png");
-  this.load.image("bell", "assets/slot_symbol_3.png");
-  this.load.image("bar", "assets/slot_symbol_4.png");
+  // this.load.image("seven", "assets/slot_symbol_1.png");
+  // this.load.image("cherry", "assets/slot_symbol_2.png");
+  // this.load.image("bell", "assets/slot_symbol_3.png");
+  // this.load.image("bar", "assets/slot_symbol_4.png");
+  this.load.image("skateboard", "assets/sliced_skate_image_1.png");
+  this.load.image("skate", "assets/sliced_skate_image_2.png");
+  this.load.image("helmet", "assets/sliced_skate_image_3.png");
+  this.load.image("tools", "assets/sliced_skate_image_4.png");
+  this.load.image("shoe", "assets/sliced_skate_image_new_1.png");
+  this.load.image("wheel", "assets/sliced_skate_image_new_2.png");
+  this.load.image("can", "assets/sliced_skate_image_new_3.png");
+  this.load.image("badge", "assets/sliced_skate_image_new_4.png");
+  this.load.image("bonus_skateboard", "assets/sliced_bonus_scatter_1.png");
+  this.load.image("scatter_screamer", "assets/sliced_bonus_scatter_2.png");
+  this.load.image("scatter_badge", "assets/sliced_bonus_scatter_3.png");
+  this.load.image("bonus_helmet", "assets/sliced_bonus_scatter_4.png");
+
   // add more as needed
 }
-const reels = []; // holds reel sprite arrays
-const symbols = ["seven", "cherry", "bell", "bar"]; // symbol keys you loaded
+const reels = []; // 3 reels
+const symbols = [
+  "skateboard",
+  "skate",
+  "helmet",
+  "tools",
+  "shoe",
+  "wheel",
+  "can",
+  "badge",
+]; // symbol keys you loaded
 let isSpinning = false;
 
 function create() {
@@ -59,7 +81,7 @@ function spin() {
 
   isSpinning = true;
   // apply a blur effect while spinning
-  this.game.canvas.style.filter = 'blur(4px)';
+  this.game.canvas.style.filter = "blur(4px)";
 
   const now = this.time.now;
 
@@ -108,7 +130,7 @@ function update(time, delta) {
   if (!anySpinning) {
     isSpinning = false;
     // remove blur when spinning stops
-    this.game.canvas.style.filter = '';
+    this.game.canvas.style.filter = "";
   }
 }
 
@@ -122,7 +144,7 @@ function alignReel(reel) {
       targets: sprite,
       y: targetY,
       duration: 300,
-      ease: 'Cubic.easeOut',
+      ease: "Cubic.easeOut",
     });
   }
 }
