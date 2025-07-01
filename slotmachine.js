@@ -5,7 +5,7 @@ const config = {
   scene: {
     preload,
     create,
-    // update,
+    update,
   },
 };
 
@@ -13,6 +13,8 @@ const REEL_WIDTH = 150;
 const START_X = 200;
 const CENTER_Y = 300;
 const SYMBOL_SPACING = 100;
+const SPIN_SPEED = 600; // pixels per second
+const DECELERATION = 200; // pixels per second squared
 
 const game = new Phaser.Game(config);
 function preload() {
@@ -23,14 +25,13 @@ function preload() {
   this.load.image("bar", "assets/slot_symbol_4.png");
   // add more as needed
 }
-const reels = []; // 3 reels
+const reels = []; // holds reel sprite arrays
 const symbols = ["seven", "cherry", "bell", "bar"]; // symbol keys you loaded
 let isSpinning = false;
 
 function create() {
-
   for (let i = 0; i < 3; i++) {
-    const reel = [];
+    const reel = { sprites: [], speed: 0, stopTime: 0, spinning: false };
     const x = START_X + i * REEL_WIDTH;
 
     for (let j = 0; j < 3; j++) {
@@ -38,7 +39,7 @@ function create() {
       const y = CENTER_Y + (j - 1) * SYMBOL_SPACING; // vertical spacing
       const sprite = this.add.sprite(x, y, symbolKey);
       sprite.setScale(0.25); // scales to 40% of original size
-      reel.push(sprite);
+      reel.sprites.push(sprite);
     }
 
     reels.push(reel);
@@ -55,48 +56,53 @@ function spin() {
   if (isSpinning) {
     return;
   }
+
   isSpinning = true;
 
-  let completed = 0;
+  const now = this.time.now;
 
-  for (const reel of reels) {
-    const cycles = Phaser.Math.Between(8, 15);
-    spinReel.call(this, reel, cycles, () => {
-      completed++;
-      if (completed === reels.length) {
-        isSpinning = false;
-      }
-    });
+  for (let i = 0; i < reels.length; i++) {
+    const reel = reels[i];
+    reel.speed = SPIN_SPEED;
+    reel.spinning = true;
+    // stagger stopping time so reels stop sequentially
+    const delay = i * 700 + Phaser.Math.Between(500, 1000);
+    reel.stopTime = now + delay;
   }
 }
 
-function spinReel(reel, cycles, onComplete) {
-  const spinStep = () => {
-    let remaining = reel.length;
-    for (const sprite of reel) {
-      this.tweens.add({
-        targets: sprite,
-        y: sprite.y + SYMBOL_SPACING,
-        duration: 100,
-        ease: "Cubic.easeInOut",
-        onComplete: () => {
-          if (sprite.y > CENTER_Y + SYMBOL_SPACING) {
-            sprite.y -= SYMBOL_SPACING * reel.length;
-            sprite.setTexture(Phaser.Utils.Array.GetRandom(symbols));
-          }
-          remaining--;
-          if (remaining === 0) {
-            cycles--;
-            if (cycles > 0) {
-              spinStep();
-            } else if (onComplete) {
-              onComplete();
-            }
-          }
-        },
-      });
-    }
-  };
+function update(time, delta) {
+  if (!isSpinning) {
+    return;
+  }
 
-  spinStep();
+  let anySpinning = false;
+
+  for (const reel of reels) {
+    if (!reel.spinning) {
+      continue;
+    }
+
+    anySpinning = true;
+
+    for (const sprite of reel.sprites) {
+      sprite.y += reel.speed * (delta / 1000);
+      if (sprite.y >= CENTER_Y + SYMBOL_SPACING) {
+        sprite.y -= SYMBOL_SPACING * reel.sprites.length;
+        sprite.setTexture(Phaser.Utils.Array.GetRandom(symbols));
+      }
+    }
+
+    if (time >= reel.stopTime) {
+      reel.speed -= DECELERATION * (delta / 1000);
+      if (reel.speed <= 0) {
+        reel.speed = 0;
+        reel.spinning = false;
+      }
+    }
+  }
+
+  if (!anySpinning) {
+    isSpinning = false;
+  }
 }
