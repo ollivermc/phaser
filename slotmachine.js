@@ -61,6 +61,7 @@ function preload() {
   this.load.image("scatter_screamer", "assets/scatter_image_2.png");
   this.load.image("scatter_badge", "assets/scatter_image_3.png");
   this.load.image("bonus_helmet", "assets/scatter_image_4.png");
+  this.load.audio("reelStop", "sounds/slotalign.wav");
 }
 
 async function create() {
@@ -153,7 +154,7 @@ async function spin() {
   if (spinButtonEl) {
     spinButtonEl.classList.add("disabled");
   }
-  this.game.canvas.style.filter = "blur(4px)";
+  // this.game.canvas.style.filter = "blur(4px)";
 
   const result = await apiSpin(currentBet);
   finalScreen = result.outcome.screen;
@@ -221,7 +222,7 @@ function update(time, delta) {
   }
   if (!anySpinning) {
     isSpinning = false;
-    this.game.canvas.style.filter = "";
+    // this.game.canvas.style.filter = "";
     if (spinButtonEl) {
       spinButtonEl.classList.remove("disabled");
     }
@@ -233,6 +234,7 @@ function update(time, delta) {
 }
 
 function alignReel(reel) {
+  this.sound.play("reelStop");
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
