@@ -97,7 +97,25 @@ function preload() {
   this.load.audio("reelStop", "sounds/slotalign.wav");
 }
 
-async function create() {
+function create() {
+  const { width, height } = this.cameras.main;
+  const continueText = this.add
+    .text(width / 2, height / 2, "CONTINUE", {
+      fontSize: "32px",
+      color: "#ffffff",
+      backgroundColor: "#222222",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive();
+
+  continueText.on("pointerdown", () => {
+    continueText.destroy();
+    startGame.call(this);
+  });
+}
+
+async function startGame() {
   const initData = await apiInit();
   availableBets = initData.options.available_bets;
   currentBetIndex = Math.max(
