@@ -55,10 +55,10 @@ function preload() {
   this.load.image("wheel", "assets/sliced_skate_image_new_2.png");
   this.load.image("can", "assets/sliced_skate_image_new_3.png");
   this.load.image("badge", "assets/sliced_skate_image_new_4.png");
-  this.load.image("bonus_skateboard", "assets/sliced_bonus_scatter_1.png");
-  this.load.image("scatter_screamer", "assets/sliced_bonus_scatter_2.png");
-  this.load.image("scatter_badge", "assets/sliced_bonus_scatter_3.png");
-  this.load.image("bonus_helmet", "assets/sliced_bonus_scatter_4.png");
+  this.load.image("bonus_skateboard", "assets/scatter_image_1.png");
+  this.load.image("scatter_screamer", "assets/scatter_image_2.png");
+  this.load.image("scatter_badge", "assets/scatter_image_3.png");
+  this.load.image("bonus_helmet", "assets/scatter_image_4.png");
 }
 
 async function create() {
@@ -66,7 +66,7 @@ async function create() {
   availableBets = initData.options.available_bets;
   currentBetIndex = Math.max(
     0,
-    availableBets.indexOf(initData.options.default_bet)
+    availableBets.indexOf(initData.options.default_bet),
   );
   currentBet = availableBets[currentBetIndex];
   rows = initData.options.layout.rows;
@@ -93,18 +93,14 @@ async function create() {
     reels.push(reel);
   }
 
-  balanceText = this.add.text(
-    20,
-    20,
-    `Balance: ${initData.balance.wallet}`,
-    { fontSize: "24px", fill: "#fff" }
-  );
-  betText = this.add.text(
-    20,
-    50,
-    `Bet: ${currentBet}`,
-    { fontSize: "24px", fill: "#fff" }
-  );
+  balanceText = this.add.text(20, 20, `Balance: ${initData.balance.wallet}`, {
+    fontSize: "24px",
+    fill: "#fff",
+  });
+  betText = this.add.text(20, 50, `Bet: ${currentBet}`, {
+    fontSize: "24px",
+    fill: "#fff",
+  });
   this.add
     .text(120, 50, "<", { fontSize: "24px", fill: "#fff" })
     .setInteractive()
@@ -151,12 +147,12 @@ async function spin() {
     const travel = SPIN_SPEED * constantTime + 0.5 * SPIN_SPEED * decelTime;
     const loops = Math.max(
       lastCol.length + finalCol.length,
-      Math.round(travel / (SYMBOL_SPACING * rows))
+      Math.round(travel / (SYMBOL_SPACING * rows)),
     );
     const randomCount = Math.max(0, loops - lastCol.length - finalCol.length);
     const randomSymbols = Phaser.Utils.Array.Shuffle([...baseReels[c]]).slice(
       0,
-      randomCount
+      randomCount,
     );
     reel.order = [...lastCol, ...randomSymbols, ...finalCol];
     reel.index = 0;
