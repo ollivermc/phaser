@@ -63,28 +63,25 @@ function spin() {
       const newSymbolKey = Phaser.Utils.Array.GetRandom(symbols);
       const originalY = symbolSprite.y;
 
-      this.tweens.timeline({
+      this.tweens.add({
         targets: symbolSprite,
-        tweens: [
-          {
-            y: originalY + 100,
-            duration: 200,
-            ease: "Cubic.easeIn",
-          },
-          {
-            onStart: () => {
-              symbolSprite.setTexture(newSymbolKey);
-            },
+        y: originalY + 100,
+        duration: 200,
+        ease: "Cubic.easeIn",
+        onComplete: () => {
+          symbolSprite.setTexture(newSymbolKey);
+          this.tweens.add({
+            targets: symbolSprite,
             y: originalY,
             duration: 200,
             ease: "Cubic.easeOut",
-          },
-        ],
-        onComplete: () => {
-          completed++;
-          if (completed === total) {
-            isSpinning = false;
-          }
+            onComplete: () => {
+              completed++;
+              if (completed === total) {
+                isSpinning = false;
+              }
+            },
+          });
         },
       });
     }
