@@ -9,12 +9,13 @@
                 margin: 0;
                 overflow: hidden;
                 background: #000;
+                text-align:center;
             }
             #spinButton {
-                z-index: 9;
+                /* z-index: 9;
                 position: absolute;
                 left: 350px;
-                top: 500px;
+                top: 500px; */
                 font-size: 48px;
                 color: #fff;
                 font-family: Arial, sans-serif;
@@ -25,10 +26,32 @@
                 opacity: 0.5;
                 pointer-events: none;
             }
+
+            #ui {
+                display: flex;
+                /* background: red; */
+                height: 65px;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                font-size: 24px;
+                color: #fff;
+                justify-content: space-evenly;
+            }
         </style>
     </head>
     <body>
-        <div id="spinButton">SPIN</div>
+        <div id="ui"">
+            <div id="balance">
+            Balance: <span id="balanceValue">100000</span>
+            </div>
+
+            <div id="spinButton">SPIN</div>
+            <div id="bet">
+            Bet: <span id="betValue">1</span> <button id="betDown">&lt;</button><button id="betUp">&gt;</button>
+            </div>
+        </div>
         <script type="module" src="slotmachine.js"></script>
     </body>
 </html>

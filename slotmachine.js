@@ -11,12 +11,12 @@ const config = {
   },
 };
 
-const REEL_WIDTH = 150;
+const REEL_WIDTH = 200;
 const START_X = 200;
 const CENTER_Y = 300;
-const SYMBOL_SPACING = 100;
-const SPIN_SPEED = 1200;
-const DECELERATION = 600;
+const SYMBOL_SPACING = 200;
+const SPIN_SPEED = 2400;
+const DECELERATION = 60000;
 
 const symbolTextures = [
   "skateboard",
@@ -43,6 +43,8 @@ let cols = 0;
 let baseReels = [];
 let currentScreen = [];
 let spinButtonEl;
+let betTxt;
+const buttons = {};
 
 const game = new Phaser.Game(config);
 
@@ -87,38 +89,58 @@ async function create() {
       const id = currentScreen[r][c];
       const y = CENTER_Y + (r - (rows - 1) / 2) * SYMBOL_SPACING;
       const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
-      sprite.setScale(0.25);
+      sprite.setScale(0.3);
       reel.sprites.push(sprite);
     }
     reels.push(reel);
   }
 
-  balanceText = this.add.text(20, 20, `Balance: ${initData.balance.wallet}`, {
-    fontSize: "24px",
-    fill: "#fff",
-  });
-  betText = this.add.text(20, 50, `Bet: ${currentBet}`, {
-    fontSize: "24px",
-    fill: "#fff",
-  });
-  this.add
-    .text(120, 50, "<", { fontSize: "24px", fill: "#fff" })
-    .setInteractive()
-    .on("pointerdown", () => {
-      currentBetIndex =
-        (currentBetIndex - 1 + availableBets.length) % availableBets.length;
-      currentBet = availableBets[currentBetIndex];
-      betText.setText(`Bet: ${currentBet}`);
-    });
-  this.add
-    .text(150, 50, ">", { fontSize: "24px", fill: "#fff" })
-    .setInteractive()
-    .on("pointerdown", () => {
-      currentBetIndex = (currentBetIndex + 1) % availableBets.length;
-      currentBet = availableBets[currentBetIndex];
-      betText.setText(`Bet: ${currentBet}`);
-    });
+  // balanceText = this.add.text(20, 20, `Balance: ${initData.balance.wallet}`, {
+  //   fontSize: "24px",
+  //   fill: "#fff",
+  // });
 
+  balanceText = document.getElementById("balanceValue");
+  balanceText.textContent = initData.balance.wallet;
+  // betText = this.add.text(20, 50, `Bet: ${currentBet}`, {
+  //   fontSize: "24px",
+  //   fill: "#fff",
+  // });
+  // this.add
+  //   .text(120, 50, "<", { fontSize: "24px", fill: "#fff" })
+  //   .setInteractive()
+  //   .on("pointerdown", () => {
+  //     currentBetIndex =
+  //       (currentBetIndex - 1 + availableBets.length) % availableBets.length;
+  //     currentBet = availableBets[currentBetIndex];
+  //     betText.setText(`Bet: ${currentBet}`);
+  //   });
+  // this.add
+  //   .text(150, 50, ">", { fontSize: "24px", fill: "#fff" })
+  //   .setInteractive()
+  //   .on("pointerdown", () => {
+  //     currentBetIndex = (currentBetIndex + 1) % availableBets.length;
+  //     currentBet = availableBets[currentBetIndex];
+  //     betText.setText(`Bet: ${currentBet}`);
+  //   });
+
+  betText = document.getElementById("betValue");
+
+  buttons.betUp = document.getElementById("betUp");
+  buttons.betDown = document.getElementById("betDown");
+  buttons.betUp.addEventListener("click", () => {
+    currentBetIndex = (currentBetIndex + 1) % availableBets.length;
+    currentBet = availableBets[currentBetIndex];
+    // betText.setText(`Bet: ${currentBet}`);
+    betText.textContent = currentBet;
+  });
+  buttons.betDown.addEventListener("click", () => {
+    currentBetIndex =
+      (currentBetIndex - 1 + availableBets.length) % availableBets.length;
+    currentBet = availableBets[currentBetIndex];
+    // betText.setText(`Bet: ${currentBet}`);
+    betText.textContent = currentBet;
+  });
   spinButtonEl = document.getElementById("spinButton");
   spinButtonEl.addEventListener("click", () => spin.call(this));
 }
@@ -135,7 +157,7 @@ async function spin() {
 
   const result = await apiSpin(currentBet);
   finalScreen = result.outcome.screen;
-  balanceText.setText(`Balance: ${result.balance.wallet}`);
+  balanceText.textContent = `${result.balance.wallet}`;
 
   for (let c = 0; c < cols; c++) {
     const reel = reels[c];
@@ -163,7 +185,7 @@ async function spin() {
     const reel = reels[i];
     reel.speed = SPIN_SPEED;
     reel.spinning = true;
-    const delay = i * 300 + 1000;
+    const delay = i * 300 + 1000; // this is how long that it runs spinning
     reel.stopTime = now + delay;
   }
 }
