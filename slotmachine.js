@@ -1,3 +1,5 @@
+import { init as apiInit, spin as apiSpin } from "./api.js";
+
 const config = {
   type: Phaser.AUTO,
   width: 800,
@@ -13,33 +15,10 @@ const REEL_WIDTH = 150;
 const START_X = 200;
 const CENTER_Y = 300;
 const SYMBOL_SPACING = 100;
-const SPIN_SPEED = 1200; // faster initial speed
-const DECELERATION = 600; // stops quickly for ~3s total spin
+const SPIN_SPEED = 1200;
+const DECELERATION = 600;
 
-const game = new Phaser.Game(config);
-function preload() {
-  // Replace with your symbol images
-  // this.load.image("seven", "assets/slot_symbol_1.png");
-  // this.load.image("cherry", "assets/slot_symbol_2.png");
-  // this.load.image("bell", "assets/slot_symbol_3.png");
-  // this.load.image("bar", "assets/slot_symbol_4.png");
-  this.load.image("skateboard", "assets/sliced_skate_image_1.png");
-  this.load.image("skate", "assets/sliced_skate_image_2.png");
-  this.load.image("helmet", "assets/sliced_skate_image_3.png");
-  this.load.image("tools", "assets/sliced_skate_image_4.png");
-  this.load.image("shoe", "assets/sliced_skate_image_new_1.png");
-  this.load.image("wheel", "assets/sliced_skate_image_new_2.png");
-  this.load.image("can", "assets/sliced_skate_image_new_3.png");
-  this.load.image("badge", "assets/sliced_skate_image_new_4.png");
-  this.load.image("bonus_skateboard", "assets/sliced_bonus_scatter_1.png");
-  this.load.image("scatter_screamer", "assets/sliced_bonus_scatter_2.png");
-  this.load.image("scatter_badge", "assets/sliced_bonus_scatter_3.png");
-  this.load.image("bonus_helmet", "assets/sliced_bonus_scatter_4.png");
-
-  // add more as needed
-}
-const reels = []; // 3 reels
-const symbols = [
+const symbolTextures = [
   "skateboard",
   "skate",
   "helmet",
@@ -48,48 +27,142 @@ const symbols = [
   "wheel",
   "can",
   "badge",
-]; // symbol keys you loaded
+  "bonus_skateboard",
+];
+
+const reels = [];
 let isSpinning = false;
+let availableBets = [];
+let currentBetIndex = 0;
+let currentBet = 1;
+let balanceText;
+let betText;
+let finalScreen = null;
+let rows = 0;
+let cols = 0;
+let baseReels = [];
+let currentScreen = [];
+let spinButtonEl;
 
-function create() {
-  for (let i = 0; i < 3; i++) {
-    const reel = { sprites: [], speed: 0, stopTime: 0, spinning: false };
-    const x = START_X + i * REEL_WIDTH;
+const game = new Phaser.Game(config);
 
-    for (let j = 0; j < 3; j++) {
-      const symbolKey = Phaser.Utils.Array.GetRandom(symbols);
-      const y = CENTER_Y + (j - 1) * SYMBOL_SPACING; // vertical spacing
-      const sprite = this.add.sprite(x, y, symbolKey);
-      sprite.setScale(0.25); // scales to 40% of original size
+function preload() {
+  this.load.image("skateboard", "assets/sliced_skate_image_1.png");
+  this.load.image("skate", "assets/sliced_skate_image_2.png");
+  this.load.image("helmet", "assets/sliced_skate_image_3.png");
+  this.load.image("tools", "assets/sliced_skate_image_4.png");
+  this.load.image("shoe", "assets/sliced_skate_image_new_1.png");
+  this.load.image("wheel", "assets/sliced_skate_image_new_2.png");
+  this.load.image("can", "assets/sliced_skate_image_new_3.png");
+  this.load.image("badge", "assets/sliced_skate_image_new_4.png");
+  this.load.image("bonus_skateboard", "assets/scatter_image_1.png");
+  this.load.image("scatter_screamer", "assets/scatter_image_2.png");
+  this.load.image("scatter_badge", "assets/scatter_image_3.png");
+  this.load.image("bonus_helmet", "assets/scatter_image_4.png");
+}
+
+async function create() {
+  const initData = await apiInit();
+  availableBets = initData.options.available_bets;
+  currentBetIndex = Math.max(
+    0,
+    availableBets.indexOf(initData.options.default_bet),
+  );
+  currentBet = availableBets[currentBetIndex];
+  rows = initData.options.layout.rows;
+  cols = initData.options.layout.reels;
+  baseReels = initData.options.reels.main.map((col) => [...col]);
+  currentScreen = initData.options.screen.map((row) => [...row]);
+  for (let c = 0; c < cols; c++) {
+    const reel = {
+      sprites: [],
+      speed: 0,
+      stopTime: 0,
+      spinning: false,
+      order: [],
+      index: 0,
+    };
+    const x = START_X + c * REEL_WIDTH;
+    for (let r = 0; r < rows; r++) {
+      const id = currentScreen[r][c];
+      const y = CENTER_Y + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
+      sprite.setScale(0.25);
       reel.sprites.push(sprite);
     }
-
     reels.push(reel);
   }
 
-  // Add a "Spin" button
-  const spinButton = this.add.text(350, 500, "SPIN", {
-    fontSize: "48px",
+  balanceText = this.add.text(20, 20, `Balance: ${initData.balance.wallet}`, {
+    fontSize: "24px",
     fill: "#fff",
   });
-  spinButton.setInteractive().on("pointerdown", spin, this);
+  betText = this.add.text(20, 50, `Bet: ${currentBet}`, {
+    fontSize: "24px",
+    fill: "#fff",
+  });
+  this.add
+    .text(120, 50, "<", { fontSize: "24px", fill: "#fff" })
+    .setInteractive()
+    .on("pointerdown", () => {
+      currentBetIndex =
+        (currentBetIndex - 1 + availableBets.length) % availableBets.length;
+      currentBet = availableBets[currentBetIndex];
+      betText.setText(`Bet: ${currentBet}`);
+    });
+  this.add
+    .text(150, 50, ">", { fontSize: "24px", fill: "#fff" })
+    .setInteractive()
+    .on("pointerdown", () => {
+      currentBetIndex = (currentBetIndex + 1) % availableBets.length;
+      currentBet = availableBets[currentBetIndex];
+      betText.setText(`Bet: ${currentBet}`);
+    });
+
+  spinButtonEl = document.getElementById("spinButton");
+  spinButtonEl.addEventListener("click", () => spin.call(this));
 }
-function spin() {
+
+async function spin() {
   if (isSpinning) {
     return;
   }
-
   isSpinning = true;
-  // apply a blur effect while spinning
+  if (spinButtonEl) {
+    spinButtonEl.classList.add("disabled");
+  }
   this.game.canvas.style.filter = "blur(4px)";
 
-  const now = this.time.now;
+  const result = await apiSpin(currentBet);
+  finalScreen = result.outcome.screen;
+  balanceText.setText(`Balance: ${result.balance.wallet}`);
 
+  for (let c = 0; c < cols; c++) {
+    const reel = reels[c];
+    const lastCol = currentScreen.map((row) => row[c]);
+    const finalCol = finalScreen.map((row) => row[c]);
+    const delay = c * 300 + 1000;
+    const constantTime = delay / 1000;
+    const decelTime = SPIN_SPEED / DECELERATION;
+    const travel = SPIN_SPEED * constantTime + 0.5 * SPIN_SPEED * decelTime;
+    const loops = Math.max(
+      lastCol.length + finalCol.length,
+      Math.round(travel / (SYMBOL_SPACING * rows)),
+    );
+    const randomCount = Math.max(0, loops - lastCol.length - finalCol.length);
+    const randomSymbols = Phaser.Utils.Array.Shuffle([...baseReels[c]]).slice(
+      0,
+      randomCount,
+    );
+    reel.order = [...lastCol, ...randomSymbols, ...finalCol];
+    reel.index = 0;
+  }
+
+  const now = this.time.now;
   for (let i = 0; i < reels.length; i++) {
     const reel = reels[i];
     reel.speed = SPIN_SPEED;
     reel.spinning = true;
-    // stagger stopping time so reels stop sequentially
     const delay = i * 300 + 1000;
     reel.stopTime = now + delay;
   }
@@ -99,24 +172,22 @@ function update(time, delta) {
   if (!isSpinning) {
     return;
   }
-
   let anySpinning = false;
-
-  for (const reel of reels) {
+  for (let col = 0; col < reels.length; col++) {
+    const reel = reels[col];
     if (!reel.spinning) {
       continue;
     }
-
     anySpinning = true;
-
     for (const sprite of reel.sprites) {
       sprite.y += reel.speed * (delta / 1000);
       if (sprite.y >= CENTER_Y + SYMBOL_SPACING) {
         sprite.y -= SYMBOL_SPACING * reel.sprites.length;
-        sprite.setTexture(Phaser.Utils.Array.GetRandom(symbols));
+        const nextId = reel.order[reel.index % reel.order.length];
+        reel.index++;
+        sprite.setTexture(symbolTextures[parseInt(nextId, 10)]);
       }
     }
-
     if (time >= reel.stopTime) {
       reel.speed -= DECELERATION * (delta / 1000);
       if (reel.speed <= 0) {
@@ -126,16 +197,20 @@ function update(time, delta) {
       }
     }
   }
-
   if (!anySpinning) {
     isSpinning = false;
-    // remove blur when spinning stops
     this.game.canvas.style.filter = "";
+    if (spinButtonEl) {
+      spinButtonEl.classList.remove("disabled");
+    }
+    if (finalScreen) {
+      currentScreen = finalScreen.map((row) => [...row]);
+      finalScreen = null;
+    }
   }
 }
 
 function alignReel(reel) {
-  // sort sprites top-to-bottom and tween them into final positions
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];

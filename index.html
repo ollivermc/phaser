@@ -4,8 +4,31 @@
         <meta charset="UTF-8" />
         <title>Phaser Slot Machine</title>
         <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+        <style>
+            body {
+                margin: 0;
+                overflow: hidden;
+                background: #000;
+            }
+            #spinButton {
+                z-index: 9;
+                position: absolute;
+                left: 350px;
+                top: 500px;
+                font-size: 48px;
+                color: #fff;
+                font-family: Arial, sans-serif;
+                cursor: pointer;
+                user-select: none;
+            }
+            #spinButton.disabled {
+                opacity: 0.5;
+                pointer-events: none;
+            }
+        </style>
     </head>
     <body>
-        <script src="slotmachine.js"></script>
+        <div id="spinButton">SPIN</div>
+        <script type="module" src="slotmachine.js"></script>
     </body>
 </html>
