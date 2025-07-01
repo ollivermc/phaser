@@ -154,7 +154,7 @@ async function spin() {
   if (spinButtonEl) {
     spinButtonEl.classList.add("disabled");
   }
-  this.game.canvas.style.filter = "blur(4px)";
+  // this.game.canvas.style.filter = "blur(4px)";
 
   const result = await apiSpin(currentBet);
   finalScreen = result.outcome.screen;
@@ -222,7 +222,7 @@ function update(time, delta) {
   }
   if (!anySpinning) {
     isSpinning = false;
-    this.game.canvas.style.filter = "";
+    // this.game.canvas.style.filter = "";
     if (spinButtonEl) {
       spinButtonEl.classList.remove("disabled");
     }
