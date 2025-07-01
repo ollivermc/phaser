@@ -113,15 +113,10 @@ function update(time, delta) {
 }
 
 function alignReel(reel) {
-  // snap reel symbols so one is centered
-  let closest = reel.sprites[0];
-  for (const sprite of reel.sprites) {
-    if (Math.abs(sprite.y - CENTER_Y) < Math.abs(closest.y - CENTER_Y)) {
-      closest = sprite;
-    }
-  }
-  const offset = CENTER_Y - closest.y;
-  for (const sprite of reel.sprites) {
-    sprite.y = Math.round(sprite.y + offset);
+  // sort sprites top-to-bottom and snap them to fixed positions
+  reel.sprites.sort((a, b) => a.y - b.y);
+  for (let i = 0; i < reel.sprites.length; i++) {
+    const targetY = CENTER_Y - SYMBOL_SPACING + i * SYMBOL_SPACING;
+    reel.sprites[i].y = targetY;
   }
 }
