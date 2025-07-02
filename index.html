@@ -3,20 +3,20 @@
     <head>
         <meta charset="UTF-8" />
         <title>Phaser Slot Machine</title>
-        <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+        <script src="phaser.min.js"></script>
         <style>
             body {
                 margin: 0;
                 overflow: hidden;
                 background: #000;
-                text-align: center;
-                display: flex;
+                /* text-align: center; */
+                /* display: flex; */
                 width: 100vw;
                 height: 100vh;
-                align-content: center;
+                /* align-content: center;
                 flex-direction: row;
                 align-items: center;
-                justify-content: space-evenly;
+                justify-content: space-evenly; */
             }
             #spinButton {
                 /* z-index: 9;
@@ -92,13 +92,10 @@
                 font-size: 20px;
             }
 
-            canvas {
-                max-height: 100vh;
-                max-width: 100vw;
-                width: 100%;
-                height: 100%;
-                /* aspect-ratio: 800 / 600; */
-                object-fit: contain;
+            #canvas-container {
+                width: 100vw;
+                height: 100vh;
+                overflow: hidden;
             }
         </style>
     </head>
@@ -119,6 +116,7 @@
                 </div>
             </div>
         </div>
+        <div id="canvas-container"></div>
         <script type="module" src="slotmachine.js"></script>
     </body>
 </html>

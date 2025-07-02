@@ -9,6 +9,11 @@ const config = {
     create,
     update,
   },
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH,
+    parent: "canvas-container", // match your DOM
+  },
 };
 
 const REEL_WIDTH = 200;
@@ -52,11 +57,12 @@ let currency;
 let lastResult = null;
 let winLine;
 let winText;
+const offset = 100;
 
 function preload() {
   this.load.image("logo", "assets/logo.png");
   const { width, height } = this.cameras.main;
-  const offset = 100;
+
   const progressBar = this.add.graphics();
   const progressBox = this.add.graphics();
   progressBox.fillStyle(0x222222, 0.8);
@@ -70,7 +76,7 @@ function preload() {
 
   this.load.once("filecomplete-image-logo", () => {
     logoImage = this.add
-      .image(width / 2, height / 2 - 100, "logo")
+      .image(width / 2, height / 2 - offset, "logo")
       .setOrigin(0.5);
   });
   const board = this.add.rectangle(
@@ -134,14 +140,18 @@ function preload() {
 function create() {
   const { width, height } = this.cameras.main;
   const continueText = this.add
-    .text(width / 2, height / 2 + 60, "CONTINUE", {
+    .text(width / 2, height / 2 + offset, "CONTINUE", {
       fontSize: "32px",
       color: "#ffffff",
       backgroundColor: "#222222",
       padding: { x: 10, y: 5 },
     })
     .setOrigin(0.5)
-    .setInteractive();
+    .setInteractive({ useHandCursor: true });
+
+  // Get actual width and height after padding
+  const paddedWidth = continueText.width;
+  const paddedHeight = continueText.height;
 
   continueText.on("pointerdown", () => {
     if (logoImage) {
@@ -256,8 +266,11 @@ async function spin(result) {
 
   // correct screen columns vs rows
   finalScreen = [[], [], []];
-  result.outcome.screen.map((column, colid) =>
-    column.map((data, row) => (finalScreen[row][colid] = data)),
+  result.outcome.screen.forEach((column, colid) =>
+    column.map((data, row) => {
+      if (!Array.isArray(finalScreen[row])) finalScreen[row] = [];
+      finalScreen[row][colid] = data;
+    }),
   );
 
   balance = `${result.balance.wallet}`;
