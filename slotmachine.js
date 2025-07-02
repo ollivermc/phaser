@@ -253,15 +253,19 @@ async function spin(result) {
   if (spinButtonEl) {
     spinButtonEl.classList.add("disabled");
   }
-  // this.game.canvas.style.filter = "blur(4px)";
 
-  finalScreen = result.outcome.screen;
+  // correct screen columns vs rows
+  finalScreen = [[], [], []];
+  result.outcome.screen.map((column, colid) =>
+    column.map((data, row) => (finalScreen[row][colid] = data)),
+  );
+
   balance = `${result.balance.wallet}`;
 
   for (let c = 0; c < cols; c++) {
     const reel = reels[c];
-    const lastCol = currentScreen.map((row) => row[c]).reverse();
-    const finalCol = finalScreen.map((row) => row[c]).reverse();
+    const lastCol = currentScreen.map((row) => row[c]);
+    const finalCol = finalScreen.map((row) => row[c]);
     const delay = c * 300 + 1000;
     const constantTime = delay / 1000;
     const decelTime = SPIN_SPEED / DECELERATION;
@@ -333,6 +337,7 @@ function update(time, delta) {
     } else {
       clearWin();
     }
+    updateUI();
     lastResult = null;
   }
 }
@@ -354,7 +359,6 @@ function alignReel(reel, col) {
       sprite.setTexture(symbolTextures[parseInt(id, 10)]);
     }
   }
-  updateUI();
 }
 
 function highlightWin(outcome) {
@@ -363,20 +367,22 @@ function highlightWin(outcome) {
   }
   clearWin();
   if (outcome.wins && outcome.wins.length > 0) {
-    const line = outcome.wins[0][2];
-    winLine.lineStyle(6, 0xff0000, 1);
-    winLine.beginPath();
-    for (let c = 0; c < line.length; c++) {
-      const row = line[c];
-      const x = START_X + c * REEL_WIDTH;
-      const y = CENTER_Y + (row - (rows - 1) / 2) * SYMBOL_SPACING;
-      if (c === 0) {
-        winLine.moveTo(x, y);
-      } else {
-        winLine.lineTo(x, y);
+    for (const winData of outcome.wins) {
+      const line = winData[2];
+      winLine.lineStyle(6, 0xff0000, 1);
+      winLine.beginPath();
+      for (let c = 0; c < line.length; c++) {
+        const row = line[c];
+        const x = START_X + c * REEL_WIDTH;
+        const y = CENTER_Y + (row - (rows - 1) / 2) * SYMBOL_SPACING;
+        if (c === 0) {
+          winLine.moveTo(x, y);
+        } else {
+          winLine.lineTo(x, y);
+        }
       }
+      winLine.strokePath();
     }
-    winLine.strokePath();
   }
   const amount = (outcome.win / currency.subunits).toFixed(currency.exponent);
   winText.setText(`WIN ${currency.symbol} ${amount}`);
@@ -391,4 +397,3 @@ function clearWin() {
     winText.setVisible(false);
   }
 }
-
