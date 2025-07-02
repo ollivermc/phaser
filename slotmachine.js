@@ -293,7 +293,7 @@ function update(time, delta) {
       if (reel.speed <= 0) {
         reel.speed = 0;
         reel.spinning = false;
-        alignReel.call(this, reel);
+        alignReel.call(this, reel, col);
       }
     }
   }
@@ -310,7 +310,7 @@ function update(time, delta) {
   }
 }
 
-function alignReel(reel) {
+function alignReel(reel, col) {
   this.sound.play("reelStop");
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
@@ -322,6 +322,10 @@ function alignReel(reel) {
       duration: 300,
       ease: "Cubic.easeOut",
     });
+    if (finalScreen) {
+      const id = finalScreen[i][col];
+      sprite.setTexture(symbolTextures[parseInt(id, 10)]);
+    }
   }
   updateUI();
 }
