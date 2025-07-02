@@ -18,78 +18,10 @@
                 align-items: center;
                 justify-content: space-evenly; */
             }
-            #spinButton {
-                /* z-index: 9;
-                position: absolute;
-                left: 350px;
-                top: 500px; */
-                font-size: 48px;
-                color: #fff;
-                font-family: Arial, sans-serif;
-                cursor: pointer;
-                user-select: none;
-                font-size: 48px;
-                color: #fff;
-                font-family: Arial, sans-serif;
-                cursor: pointer;
-                user-select: none;
-                border: 2px solid #444;
-                padding: 0 12px;
-                border-radius: 0.5em;
-            }
-            #spinButton.disabled {
-                opacity: 0.5;
-                pointer-events: none;
-            }
 
-            #ui {
-                display: flex;
-                /* background: red; */
-                height: 65px;
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                font-size: 24px;
-                color: #fff;
-                justify-content: space-between;
-                align-items: center;
-            }
-
-            #ui.loading {
-                display: none;
-            }
-
-            #balance,
-            #bet {
-                display: flex;
-                flex-direction: row;
-                justify-content: flex-start;
-                align-items: center;
-            }
-            #balance .title,
-            #bet .title {
-                text-transform: uppercase;
-                rotate: -90deg;
-                font-size: 14px;
-            }
-            #balance #balanceValue,
-            #bet #betValue {
-                font-size: 40px;
-                display: block;
-            }
-            .vert {
-                display: flex;
-                flex-direction: column;
-            }
-            .vert > button {
-                /* border: 1px solid #666; */
-                margin: 1px 0 1px 10px;
-                border-radius: 3px;
-                background: #232;
-                background: #66666622;
-                color: #fff;
-                font-size: 20px;
+            canvas {
+                touch-action: manipulation;
+                -webkit-tap-highlight-color: transparent;
             }
 
             #canvas-container {
@@ -100,22 +32,6 @@
         </style>
     </head>
     <body>
-        <div id="ui" class="loading">
-            <div id="balance">
-                <div class="title">bank</div>
-                <span id="balanceValue">100000</span>
-            </div>
-
-            <div id="spinButton">SPIN</div>
-            <div id="bet">
-                <div class="title">Bet</div>
-                <span id="betValue">1</span>
-                <div class="vert">
-                    <button id="betUp">&uArr;</button>
-                    <button id="betDown">&dArr;</button>
-                </div>
-            </div>
-        </div>
         <div id="canvas-container"></div>
         <script type="module" src="slotmachine.js"></script>
     </body>
