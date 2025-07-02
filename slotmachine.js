@@ -42,14 +42,15 @@ let currentBetIndex = 0;
 let currentBet = 1;
 let balanceText;
 let betText;
+let spinButton;
+let betUpButton;
+let betDownButton;
 let finalScreen = null;
 let rows = 0;
 let cols = 0;
 let baseReels = [];
 let currentScreen = [];
-let spinButtonEl;
-let betTxt;
-const buttons = {};
+let uiContainer;
 let logoImage;
 const game = new Phaser.Game(config);
 let balance;
@@ -163,7 +164,6 @@ function create() {
 }
 
 async function startGame() {
-  document.getElementById("ui").classList.remove("loading");
   const initData = await apiInit();
   currency = initData.options.currency;
   availableBets = initData.options.available_bets;
@@ -207,37 +207,90 @@ async function startGame() {
     .setVisible(false);
   winText.setShadow(0, 0, "#ffff00", 10, true, true);
 
-  balanceText = document.getElementById("balanceValue");
   balance = initData.balance.wallet;
-  balanceText.textContent = `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`;
-  betText = document.getElementById("betValue");
+
+  // Phaser based UI
+  balanceText = this.add.text(0, 0, "", {
+    fontSize: "32px",
+    color: "#ffffff",
+    fontFamily: "Arial",
+  });
+
+  betText = this.add.text(0, 0, "", {
+    fontSize: "32px",
+    color: "#ffffff",
+    fontFamily: "Arial",
+  });
+
+  spinButton = this.add
+    .text(0, 0, "SPIN", {
+      fontSize: "48px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      if (isSpinning) {
+        return;
+      }
+      spinButton.setAlpha(0.5);
+      apiSpin(currentBet).then((result) => spin.call(this, result));
+    });
+
+  betUpButton = this.add
+    .text(0, 0, "▲", {
+      fontSize: "24px",
+      color: "#ffffff",
+      backgroundColor: "#666",
+      padding: { x: 5, y: 2 },
+    })
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      currentBetIndex = (currentBetIndex + 1) % availableBets.length;
+      currentBet = availableBets[currentBetIndex];
+      updateUI();
+    });
+
+  betDownButton = this.add
+    .text(0, 0, "▼", {
+      fontSize: "24px",
+      color: "#ffffff",
+      backgroundColor: "#666",
+      padding: { x: 5, y: 2 },
+    })
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      currentBetIndex =
+        (currentBetIndex - 1 + availableBets.length) % availableBets.length;
+      currentBet = availableBets[currentBetIndex];
+      updateUI();
+    });
+
+  uiContainer = this.add.container(0, 0, [
+    balanceText,
+    spinButton,
+    betText,
+    betUpButton,
+    betDownButton,
+  ]);
+
   updateUI();
-  buttons.betUp = document.getElementById("betUp");
-  buttons.betDown = document.getElementById("betDown");
-  buttons.betUp.addEventListener("click", () => {
-    currentBetIndex = (currentBetIndex + 1) % availableBets.length;
-    currentBet = availableBets[currentBetIndex];
-    updateUI();
-  });
-  buttons.betDown.addEventListener("click", () => {
-    currentBetIndex =
-      (currentBetIndex - 1 + availableBets.length) % availableBets.length;
-    currentBet = availableBets[currentBetIndex];
-    updateUI();
-  });
-  spinButtonEl = document.getElementById("spinButton");
-  spinButtonEl.addEventListener("click", () => {
-    if (isSpinning) {
-      return;
-    }
-    spinButtonEl.classList.add("disabled");
-    apiSpin(currentBet).then((result) => spin.call(this, result));
-  });
+  resizeUI.call(this, this.scale.gameSize);
+  this.scale.on("resize", resizeUI, this);
 }
 
 function updateUI() {
-  balanceText.textContent = `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`;
-  betText.textContent = `${currency.symbol} ${(currentBet / currency.subunits).toFixed(currency.exponent)}`;
+  if (!balanceText || !betText) {
+    return;
+  }
+  balanceText.setText(
+    `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`,
+  );
+  betText.setText(
+    `${currency.symbol} ${(currentBet / currency.subunits).toFixed(currency.exponent)}`,
+  );
 }
 
 async function spin(result) {
@@ -260,8 +313,9 @@ async function spin(result) {
     winText.setVisible(false);
   }
   isSpinning = true;
-  if (spinButtonEl) {
-    spinButtonEl.classList.add("disabled");
+  if (spinButton) {
+    spinButton.disableInteractive();
+    spinButton.setAlpha(0.5);
   }
 
   // correct screen columns vs rows
@@ -338,8 +392,9 @@ function update(time, delta) {
   if (!anySpinning) {
     isSpinning = false;
     // this.game.canvas.style.filter = "";
-    if (spinButtonEl) {
-      spinButtonEl.classList.remove("disabled");
+    if (spinButton) {
+      spinButton.setAlpha(1);
+      spinButton.setInteractive({ useHandCursor: true });
     }
     if (finalScreen) {
       currentScreen = finalScreen.map((row) => [...row]);
@@ -425,4 +480,29 @@ function clearWin() {
   if (winText) {
     winText.setVisible(false);
   }
+}
+
+function resizeUI(gameSize) {
+  if (!spinButton || !balanceText || !betText) {
+    return;
+  }
+  const width = gameSize.width;
+  const height = gameSize.height;
+  const isPortrait = height >= width;
+
+  const margin = 20;
+  const bottom = height - margin * 2;
+
+  if (isPortrait) {
+    spinButton.setPosition(width / 2, bottom);
+    balanceText.setPosition(margin, bottom);
+    betText.setPosition(width - betText.width - margin, bottom);
+  } else {
+    spinButton.setPosition(width / 2, bottom);
+    balanceText.setPosition(margin, bottom);
+    betText.setPosition(width - betText.width - margin, bottom);
+  }
+
+  betUpButton.setPosition(betText.x - 30, betText.y - 20);
+  betDownButton.setPosition(betText.x - 30, betText.y + 20);
 }
