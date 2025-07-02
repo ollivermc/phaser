@@ -272,6 +272,22 @@ export async function init() {
 }
 
 function getOutcome(betAmount) {
+  return {
+    screen: [
+      ["4", "7", "0"],
+      ["4", "7", "0"],
+      ["2", "7", "0"],
+    ],
+    special_symbols: {},
+    bet: betAmount,
+    win: betAmount * 61.0,
+    wins: [
+      ["line", 1.0, [1, 1, 1], 1],
+      ["line", 60.0, [2, 2, 2], 2],
+    ],
+    storage: null,
+  };
+
   return [
     {
       bet: betAmount,
