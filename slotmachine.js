@@ -333,7 +333,7 @@ function update(time, delta) {
       finalScreen = null;
     }
     if (lastResult && lastResult.outcome.win > 0) {
-      highlightWin.call(this, lastResult.outcome);
+      highlightWin.call(this, lastResult.outcome, lastResult.features);
     } else {
       clearWin();
     }
@@ -361,27 +361,43 @@ function alignReel(reel, col) {
   }
 }
 
-function highlightWin(outcome) {
+function highlightWin(outcome, features) {
   if (!winLine || !winText) {
     return;
   }
   clearWin();
   if (outcome.wins && outcome.wins.length > 0) {
     for (const winData of outcome.wins) {
-      const line = winData[2];
-      winLine.lineStyle(6, 0xff0000, 1);
-      winLine.beginPath();
-      for (let c = 0; c < line.length; c++) {
-        const row = line[c];
-        const x = START_X + c * REEL_WIDTH;
-        const y = CENTER_Y + (row - (rows - 1) / 2) * SYMBOL_SPACING;
-        if (c === 0) {
-          winLine.moveTo(x, y);
-        } else {
-          winLine.lineTo(x, y);
-        }
+      const [winType, multiplier, line] = winData;
+      switch (winType) {
+        case "scatter":
+          // this is the large win bonus thingy; data is available in features and looks like..
+          // {
+          //     "bonus_data": {
+          //         "bonus_multiplier": 53,
+          //         "scatters_multiplier": 1,
+          //         "scatters_count": 3,
+          //         "multiplier": 53
+          //     }
+          // }
+          console.log("Big win!!", features);
+          break;
+        case "line":
+          winLine.lineStyle(6, 0xff0000, 1);
+          winLine.beginPath();
+          for (let c = 0; c < line.length; c++) {
+            const row = line[c];
+            const x = START_X + c * REEL_WIDTH;
+            const y = CENTER_Y + (row - (rows - 1) / 2) * SYMBOL_SPACING;
+            if (c === 0) {
+              winLine.moveTo(x, y);
+            } else {
+              winLine.lineTo(x, y);
+            }
+          }
+          winLine.strokePath();
+          break;
       }
-      winLine.strokePath();
     }
   }
   const amount = (outcome.win / currency.subunits).toFixed(currency.exponent);
