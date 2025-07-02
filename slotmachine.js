@@ -59,6 +59,7 @@ let lastResult = null;
 let winLine;
 let winText;
 const offset = 100;
+let spriteScale = 0.3;
 
 function preload() {
   this.load.image("logo", "assets/logo.png");
@@ -190,7 +191,7 @@ async function startGame() {
       const id = currentScreen[r][c];
       const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
       const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
-      sprite.setScale(0.3);
+      sprite.setScale(spriteScale);
       reel.sprites.push(sprite);
     }
     reels.push(reel);
@@ -211,20 +212,20 @@ async function startGame() {
 
   // Phaser based UI
   balanceText = this.add.text(0, 0, "", {
-    fontSize: "32px",
+    fontSize: "36px",
     color: "#ffffff",
     fontFamily: "Arial",
   });
 
   betText = this.add.text(0, 0, "", {
-    fontSize: "32px",
+    fontSize: "36px",
     color: "#ffffff",
     fontFamily: "Arial",
   });
 
   spinButton = this.add
     .text(0, 0, "SPIN", {
-      fontSize: "48px",
+      fontSize: "60px",
       color: "#ffffff",
       backgroundColor: "#444",
       padding: { x: 10, y: 5 },
@@ -251,7 +252,7 @@ async function startGame() {
 
   betUpButton = this.add
     .text(0, 0, "▲", {
-      fontSize: "24px",
+      fontSize: "28px",
       color: "#ffffff",
       backgroundColor: "#666",
       padding: { x: 5, y: 2 },
@@ -265,7 +266,7 @@ async function startGame() {
 
   betDownButton = this.add
     .text(0, 0, "▼", {
-      fontSize: "24px",
+      fontSize: "28px",
       color: "#ffffff",
       backgroundColor: "#666",
       padding: { x: 5, y: 2 },
@@ -503,23 +504,36 @@ function resizeUI(gameSize) {
   const width = gameSize.width;
   const height = gameSize.height;
   const margin = 20;
-  const bottom = height - margin;
+  if (width > height) {
+    // landscape - UI on the right
+    spinButton.setOrigin(1, 0.5);
+    balanceText.setOrigin(1, 0);
+    betText.setOrigin(1, 1);
+    betUpButton.setOrigin(1, 1);
+    betDownButton.setOrigin(1, 1);
 
-  spinButton.setOrigin(0.5, 1);
-  balanceText.setOrigin(0, 1);
-  betText.setOrigin(0, 1);
-  betUpButton.setOrigin(0, 1);
-  betDownButton.setOrigin(0, 1);
+    const right = width - margin;
+    spinButton.setPosition(right, height / 2);
+    balanceText.setPosition(right, margin);
+    betDownButton.setPosition(right, height - margin);
+    betUpButton.setPosition(right, height - margin - betDownButton.height);
+    betText.setPosition(right - betDownButton.width - 5, height - margin);
+  } else {
+    // portrait - UI at bottom
+    const bottom = height - margin;
+    spinButton.setOrigin(0.5, 1);
+    balanceText.setOrigin(0, 1);
+    betText.setOrigin(0, 1);
+    betUpButton.setOrigin(0, 1);
+    betDownButton.setOrigin(0, 1);
 
-  spinButton.setPosition(width / 2, bottom);
-  balanceText.setPosition(margin, bottom);
-
-  const betX =
-    width - margin - betText.width - betUpButton.width - 5;
-  betText.setPosition(betX, bottom);
-
-  betUpButton.setPosition(betX + betText.width + 5, bottom - betUpButton.height);
-  betDownButton.setPosition(betX + betText.width + 5, bottom);
+    spinButton.setPosition(width / 2, bottom);
+    balanceText.setPosition(margin, bottom);
+    const betX = width - margin - betText.width - betUpButton.width - 5;
+    betText.setPosition(betX, bottom);
+    betUpButton.setPosition(betX + betText.width + 5, bottom - betUpButton.height);
+    betDownButton.setPosition(betX + betText.width + 5, bottom);
+  }
 }
 
 function layoutGame(gameSize) {
@@ -529,9 +543,23 @@ function layoutGame(gameSize) {
   const width = gameSize.width;
   const height = gameSize.height;
   const margin = 20;
-  const uiHeight = spinButton ? spinButton.height + margin : 80;
-  centerY = (height - uiHeight) / 2;
-  startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
+  if (width > height) {
+    // landscape - leave room for UI on right
+    spriteScale = 0.25;
+    const uiWidth = Math.max(
+      spinButton.width,
+      betText.width + betUpButton.width + 5,
+      balanceText.width,
+    ) + margin * 2;
+    const availableWidth = width - uiWidth;
+    centerY = height / 2;
+    startX = (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
+  } else {
+    spriteScale = 0.3;
+    const uiHeight = spinButton ? spinButton.height + margin : 80;
+    centerY = (height - uiHeight) / 2;
+    startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
+  }
   for (let c = 0; c < reels.length; c++) {
     const reel = reels[c];
     const x = startX + c * REEL_WIDTH;
@@ -539,10 +567,12 @@ function layoutGame(gameSize) {
       const sprite = reel.sprites[r];
       const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
       sprite.setPosition(x, y);
+      sprite.setScale(spriteScale);
     }
   }
   if (winText) {
-    winText.setPosition(width / 2, 80);
+    const reelsCenter = startX + ((cols - 1) * REEL_WIDTH) / 2;
+    winText.setPosition(reelsCenter, 80);
   }
   if (winLine) {
     winLine.clear();
