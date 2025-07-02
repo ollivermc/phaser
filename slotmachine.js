@@ -237,6 +237,16 @@ async function startGame() {
       }
       spinButton.setAlpha(0.5);
       apiSpin(currentBet).then((result) => spin.call(this, result));
+    })
+    .on("pointerup", () => {
+      if (!isSpinning) {
+        spinButton.setAlpha(1);
+      }
+    })
+    .on("pointerout", () => {
+      if (!isSpinning) {
+        spinButton.setAlpha(1);
+      }
     });
 
   betUpButton = this.add
@@ -488,21 +498,22 @@ function resizeUI(gameSize) {
   }
   const width = gameSize.width;
   const height = gameSize.height;
-  const isPortrait = height >= width;
-
   const margin = 20;
-  const bottom = height - margin * 2;
+  const bottom = height - margin;
 
-  if (isPortrait) {
-    spinButton.setPosition(width / 2, bottom);
-    balanceText.setPosition(margin, bottom);
-    betText.setPosition(width - betText.width - margin, bottom);
-  } else {
-    spinButton.setPosition(width / 2, bottom);
-    balanceText.setPosition(margin, bottom);
-    betText.setPosition(width - betText.width - margin, bottom);
-  }
+  spinButton.setOrigin(0.5, 1);
+  balanceText.setOrigin(0, 1);
+  betText.setOrigin(0, 1);
+  betUpButton.setOrigin(0, 1);
+  betDownButton.setOrigin(0, 1);
 
-  betUpButton.setPosition(betText.x - 30, betText.y - 20);
-  betDownButton.setPosition(betText.x - 30, betText.y + 20);
+  spinButton.setPosition(width / 2, bottom);
+  balanceText.setPosition(margin, bottom);
+
+  const betX =
+    width - margin - betText.width - betUpButton.width - 5;
+  betText.setPosition(betX, bottom);
+
+  betUpButton.setPosition(betX + betText.width + 5, bottom - betUpButton.height);
+  betDownButton.setPosition(betX + betText.width + 5, bottom);
 }
