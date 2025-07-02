@@ -1,0 +1,52 @@
+{
+  "api_version": "2",
+  "outcome": {
+    "screen": [
+      ["8", "7", "0"],
+      ["7", "8", "4"],
+      ["8", "3", "4"]
+    ],
+    "special_symbols": {
+      "scatter": {
+        "8": [
+          [0, 0],
+          [1, 1],
+          [2, 0]
+        ]
+      }
+    },
+    "bet": 2000,
+    "win": 106000,
+    "wins": [
+      [
+        "scatter",
+        106000,
+        [
+          [0, 0],
+          [1, 1],
+          [2, 0]
+        ]
+      ]
+    ],
+    "storage": null
+  },
+  "balance": {
+    "game": 106000,
+    "wallet": 61821
+  },
+  "flow": {
+    "round_id": 1751446497678,
+    "last_action_id": "1751446497678_1",
+    "state": "closed",
+    "command": "spin",
+    "available_actions": ["init", "spin"]
+  },
+  "features": {
+    "bonus_data": {
+      "bonus_multiplier": 53,
+      "scatters_multiplier": 1,
+      "scatters_count": 3,
+      "multiplier": 53
+    }
+  }
+}
