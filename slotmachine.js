@@ -49,6 +49,9 @@ let logoImage;
 const game = new Phaser.Game(config);
 let balance;
 let currency;
+let lastResult = null;
+let winLine;
+let winText;
 
 function preload() {
   this.load.image("logo", "assets/logo.png");
@@ -183,6 +186,17 @@ async function startGame() {
     reels.push(reel);
   }
 
+  winLine = this.add.graphics();
+  winText = this.add
+    .text(this.cameras.main.width / 2, 80, "", {
+      fontSize: "48px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5)
+    .setVisible(false);
+  winText.setShadow(0, 0, "#ffff00", 10, true, true);
+
   balanceText = document.getElementById("balanceValue");
   balance = initData.balance.wallet;
   balanceText.textContent = `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`;
@@ -227,6 +241,13 @@ async function spin(result) {
   });
   if (isSpinning) {
     return;
+  }
+  lastResult = result;
+  if (winLine) {
+    winLine.clear();
+  }
+  if (winText) {
+    winText.setVisible(false);
   }
   isSpinning = true;
   if (spinButtonEl) {
@@ -307,6 +328,12 @@ function update(time, delta) {
       currentScreen = finalScreen.map((row) => [...row]);
       finalScreen = null;
     }
+    if (lastResult && lastResult.outcome.win > 0) {
+      highlightWin.call(this, lastResult.outcome);
+    } else {
+      clearWin();
+    }
+    lastResult = null;
   }
 }
 
@@ -329,3 +356,39 @@ function alignReel(reel, col) {
   }
   updateUI();
 }
+
+function highlightWin(outcome) {
+  if (!winLine || !winText) {
+    return;
+  }
+  clearWin();
+  if (outcome.wins && outcome.wins.length > 0) {
+    const line = outcome.wins[0][2];
+    winLine.lineStyle(6, 0xff0000, 1);
+    winLine.beginPath();
+    for (let c = 0; c < line.length; c++) {
+      const row = line[c];
+      const x = START_X + c * REEL_WIDTH;
+      const y = CENTER_Y + (row - (rows - 1) / 2) * SYMBOL_SPACING;
+      if (c === 0) {
+        winLine.moveTo(x, y);
+      } else {
+        winLine.lineTo(x, y);
+      }
+    }
+    winLine.strokePath();
+  }
+  const amount = (outcome.win / currency.subunits).toFixed(currency.exponent);
+  winText.setText(`WIN ${currency.symbol} ${amount}`);
+  winText.setVisible(true);
+}
+
+function clearWin() {
+  if (winLine) {
+    winLine.clear();
+  }
+  if (winText) {
+    winText.setVisible(false);
+  }
+}
+
