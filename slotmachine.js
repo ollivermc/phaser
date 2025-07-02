@@ -10,15 +10,15 @@ const config = {
     update,
   },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.RESIZE,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     parent: "canvas-container", // match your DOM
   },
 };
 
 const REEL_WIDTH = 200;
-const START_X = 200;
-const CENTER_Y = 300;
+let startX = 200;
+let centerY = 300;
 const SYMBOL_SPACING = 200;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
@@ -185,10 +185,10 @@ async function startGame() {
       order: [],
       index: 0,
     };
-    const x = START_X + c * REEL_WIDTH;
+    const x = startX + c * REEL_WIDTH;
     for (let r = 0; r < rows; r++) {
       const id = currentScreen[r][c];
-      const y = CENTER_Y + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
       const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
       sprite.setScale(0.3);
       reel.sprites.push(sprite);
@@ -288,7 +288,11 @@ async function startGame() {
 
   updateUI();
   resizeUI.call(this, this.scale.gameSize);
-  this.scale.on("resize", resizeUI, this);
+  layoutGame.call(this, this.scale.gameSize);
+  this.scale.on("resize", (gameSize) => {
+    resizeUI.call(this, gameSize);
+    layoutGame.call(this, gameSize);
+  });
 }
 
 function updateUI() {
@@ -383,7 +387,7 @@ function update(time, delta) {
     anySpinning = true;
     for (const sprite of reel.sprites) {
       sprite.y += reel.speed * (delta / 1000);
-      if (sprite.y >= CENTER_Y + SYMBOL_SPACING) {
+      if (sprite.y >= centerY + SYMBOL_SPACING) {
         sprite.y -= SYMBOL_SPACING * reel.sprites.length;
         const nextId = reel.order[reel.index % reel.order.length];
         reel.index++;
@@ -425,7 +429,7 @@ function alignReel(reel, col) {
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
-    const targetY = CENTER_Y - SYMBOL_SPACING + i * SYMBOL_SPACING;
+    const targetY = centerY - SYMBOL_SPACING + i * SYMBOL_SPACING;
     this.tweens.add({
       targets: sprite,
       y: targetY,
@@ -465,8 +469,8 @@ function highlightWin(outcome, features) {
           winLine.beginPath();
           for (let c = 0; c < line.length; c++) {
             const row = line[c];
-            const x = START_X + c * REEL_WIDTH;
-            const y = CENTER_Y + (row - (rows - 1) / 2) * SYMBOL_SPACING;
+            const x = startX + c * REEL_WIDTH;
+            const y = centerY + (row - (rows - 1) / 2) * SYMBOL_SPACING;
             if (c === 0) {
               winLine.moveTo(x, y);
             } else {
@@ -516,4 +520,31 @@ function resizeUI(gameSize) {
 
   betUpButton.setPosition(betX + betText.width + 5, bottom - betUpButton.height);
   betDownButton.setPosition(betX + betText.width + 5, bottom);
+}
+
+function layoutGame(gameSize) {
+  if (!reels.length) {
+    return;
+  }
+  const width = gameSize.width;
+  const height = gameSize.height;
+  const margin = 20;
+  const uiHeight = spinButton ? spinButton.height + margin : 80;
+  centerY = (height - uiHeight) / 2;
+  startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
+  for (let c = 0; c < reels.length; c++) {
+    const reel = reels[c];
+    const x = startX + c * REEL_WIDTH;
+    for (let r = 0; r < reel.sprites.length; r++) {
+      const sprite = reel.sprites[r];
+      const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      sprite.setPosition(x, y);
+    }
+  }
+  if (winText) {
+    winText.setPosition(width / 2, 80);
+  }
+  if (winLine) {
+    winLine.clear();
+  }
 }
