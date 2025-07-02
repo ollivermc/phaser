@@ -124,6 +124,7 @@ function preload() {
     wheelRight.destroy();
   });
 
+  this.load.image("spin", "assets/spin.png");
   this.load.image("skateboard", "assets/sliced_skate_image_1.png");
   this.load.image("skate", "assets/sliced_skate_image_2.png");
   this.load.image("helmet", "assets/sliced_skate_image_3.png");
@@ -224,6 +225,8 @@ async function startGame() {
   });
 
   spinButton = this.add
+    // .image(0, 0, "spin")
+    // .setScale(0.5)
     .text(0, 0, "SPIN", {
       fontSize: "60px",
       color: "#ffffff",
@@ -531,7 +534,10 @@ function resizeUI(gameSize) {
     balanceText.setPosition(margin, bottom);
     const betX = width - margin - betText.width - betUpButton.width - 5;
     betText.setPosition(betX, bottom);
-    betUpButton.setPosition(betX + betText.width + 5, bottom - betUpButton.height);
+    betUpButton.setPosition(
+      betX + betText.width + 5,
+      bottom - betUpButton.height,
+    );
     betDownButton.setPosition(betX + betText.width + 5, bottom);
   }
 }
@@ -546,11 +552,13 @@ function layoutGame(gameSize) {
   if (width > height) {
     // landscape - leave room for UI on right
     spriteScale = 0.25;
-    const uiWidth = Math.max(
-      spinButton.width,
-      betText.width + betUpButton.width + 5,
-      balanceText.width,
-    ) + margin * 2;
+    const uiWidth =
+      Math.max(
+        spinButton.width,
+        betText.width + betUpButton.width + 5,
+        balanceText.width,
+      ) +
+      margin * 2;
     const availableWidth = width - uiWidth;
     centerY = height / 2;
     startX = (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
