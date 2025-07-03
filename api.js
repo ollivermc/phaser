@@ -22,14 +22,14 @@ export async function init() {
       state: "ready",
     },
     options: {
-      available_bets: [1, 2, 3, 4, 5, 10, 20, 50, 100, 500, 1000, 2000],
+      available_bets: [10, 25, 50, 100, 200, 500, 1000],
       currency: {
         code: "FUN",
         exponent: 2,
         subunits: 100,
         symbol: "FUN",
       },
-      default_bet: 1,
+      default_bet: 10,
       feature_options: {
         disabled_features: [],
         feature_multipliers: {

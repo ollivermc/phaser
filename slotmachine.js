@@ -54,10 +54,12 @@ let availableBets = [];
 let currentBetIndex = 0;
 let currentBet = 1;
 let balanceText;
-let betText;
+let betButton;
 let spinButton;
-let betUpButton;
-let betDownButton;
+let autoSpinButton;
+let autoSpin = false;
+let betMenuContainer;
+
 let finalScreen = null;
 let rows = 0;
 let cols = 0;
@@ -272,11 +274,22 @@ async function startGame() {
     fontFamily: "Arial",
   });
 
-  betText = this.add.text(0, 0, "", {
-    fontSize: "36px",
-    color: "#ffffff",
-    fontFamily: "Arial",
-  });
+  betButton = this.add
+    .text(0, 0, "", {
+      fontSize: "36px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      if (betMenuContainer) {
+        closeBetMenu.call(this);
+      } else {
+        openBetMenu.call(this);
+      }
+    });
 
   spinButton = this.add
     // .image(0, 0, "spin")
@@ -290,11 +303,7 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      if (isSpinning) {
-        return;
-      }
-      spinButton.setAlpha(0.5);
-      apiSpin(currentBet).then((result) => spin.call(this, result));
+      startSpin(this);
     })
     .on("pointerup", () => {
       if (!isSpinning) {
@@ -307,34 +316,23 @@ async function startGame() {
       }
     });
 
-  betUpButton = this.add
-    .text(0, 0, "▲", {
-      fontSize: "28px",
+  autoSpinButton = this.add
+    .text(0, 0, "AUTO OFF", {
+      fontSize: "36px",
       color: "#ffffff",
-      backgroundColor: "#666",
-      padding: { x: 5, y: 2 },
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
     })
+    .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      currentBetIndex = (currentBetIndex + 1) % availableBets.length;
-      currentBet = availableBets[currentBetIndex];
-      updateUI();
+      autoSpin = !autoSpin;
+      updateAutoSpinButton();
+      if (autoSpin && !isSpinning) {
+        startSpin(this);
+      }
     });
-
-  betDownButton = this.add
-    .text(0, 0, "▼", {
-      fontSize: "28px",
-      color: "#ffffff",
-      backgroundColor: "#666",
-      padding: { x: 5, y: 2 },
-    })
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      currentBetIndex =
-        (currentBetIndex - 1 + availableBets.length) % availableBets.length;
-      currentBet = availableBets[currentBetIndex];
-      updateUI();
-    });
+  updateAutoSpinButton();
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
@@ -352,10 +350,9 @@ async function startGame() {
 
   uiContainer = this.add.container(0, 0, [
     balanceText,
+    autoSpinButton,
     spinButton,
-    betText,
-    betUpButton,
-    betDownButton,
+    betButton,
     settingsButton,
   ]);
 
@@ -369,15 +366,32 @@ async function startGame() {
 }
 
 function updateUI() {
-  if (!balanceText || !betText) {
+  if (!balanceText || !betButton) {
     return;
   }
   balanceText.setText(
     `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`,
   );
-  betText.setText(
+  betButton.setText(
     `${currency.symbol} ${(currentBet / currency.subunits).toFixed(currency.exponent)}`,
   );
+}
+
+function updateAutoSpinButton() {
+  if (autoSpinButton) {
+    autoSpinButton.setText(`AUTO ${autoSpin ? "ON" : "OFF"}`);
+  }
+}
+
+function startSpin(scene) {
+  if (isSpinning) {
+    return;
+  }
+  if (spinButton) {
+    spinButton.disableInteractive();
+    spinButton.setAlpha(0.5);
+  }
+  apiSpin(currentBet).then((result) => spin.call(scene, result));
 }
 
 async function spin(result) {
@@ -494,6 +508,13 @@ function update(time, delta) {
     }
     updateUI();
     lastResult = null;
+    if (autoSpin) {
+      this.time.delayedCall(500, () => {
+        if (autoSpin && !isSpinning) {
+          startSpin(this);
+        }
+      });
+    }
   }
 }
 
@@ -572,7 +593,7 @@ function clearWin() {
 }
 
 function resizeUI(gameSize) {
-  if (!spinButton || !balanceText || !betText || !settingsButton) {
+  if (!spinButton || !balanceText || !betButton || !autoSpinButton || !settingsButton) {
     return;
   }
   const width = gameSize.width;
@@ -583,40 +604,32 @@ function resizeUI(gameSize) {
     const uiX = right ? width - margin : margin;
     const settingsX = right ? margin : width - margin;
     spinButton.setOrigin(right ? 1 : 0, 0.5);
+    autoSpinButton.setOrigin(right ? 1 : 0, 0.5);
+    betButton.setOrigin(right ? 1 : 0, 0.5);
     balanceText.setOrigin(right ? 1 : 0, 0);
-    betText.setOrigin(right ? 1 : 0, 1);
-    betUpButton.setOrigin(right ? 1 : 0, 1);
-    betDownButton.setOrigin(right ? 1 : 0, 1);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
+    const spacing = Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 + margin;
     spinButton.setPosition(uiX, height / 2);
+    autoSpinButton.setPosition(uiX, height / 2 - spacing);
+    betButton.setPosition(uiX, height / 2 + spacing);
     balanceText.setPosition(uiX, margin);
-    betDownButton.setPosition(uiX, height - margin);
-    betUpButton.setPosition(uiX, height - margin - betDownButton.height);
-    if (right) {
-      betText.setPosition(uiX - betDownButton.width - 5, height - margin);
-    } else {
-      betText.setPosition(uiX + betDownButton.width + 5, height - margin);
-    }
     settingsButton.setPosition(settingsX, margin);
   } else {
     const bottom = height - margin;
     spinButton.setOrigin(0.5, 1);
+    autoSpinButton.setOrigin(0.5, 1);
+    betButton.setOrigin(0.5, 1);
     balanceText.setOrigin(0, 1);
-    betText.setOrigin(0, 1);
-    betUpButton.setOrigin(0, 1);
-    betDownButton.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setPosition(width / 2, bottom);
+    const autoSpacing =
+      spinButton.width / 2 + margin + autoSpinButton.width / 2;
+    const betSpacing = spinButton.width / 2 + margin + betButton.width / 2;
+    autoSpinButton.setPosition(width / 2 - autoSpacing, bottom);
+    betButton.setPosition(width / 2 + betSpacing, bottom);
     balanceText.setPosition(margin, bottom);
-    const betX = width - margin - betText.width - betUpButton.width - 5;
-    betText.setPosition(betX, bottom);
-    betUpButton.setPosition(
-      betX + betText.width + 5,
-      bottom - betUpButton.height,
-    );
-    betDownButton.setPosition(betX + betText.width + 5, bottom);
     const settingsX = settings.rightHand ? margin : width - margin;
     settingsButton.setPosition(settingsX, margin);
   }
@@ -635,7 +648,8 @@ function layoutGame(gameSize) {
     const uiWidth =
       Math.max(
         spinButton.width,
-        betText.width + betUpButton.width + 5,
+        autoSpinButton.width,
+        betButton.width,
         balanceText.width,
       ) +
       margin * 2;
@@ -645,7 +659,10 @@ function layoutGame(gameSize) {
     startX = offsetX + (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
   } else {
     spriteScale = 0.3;
-    const uiHeight = spinButton ? spinButton.height + margin : 80;
+    const uiHeight = spinButton
+      ? Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
+        margin * 2
+      : 80;
     centerY = (height - uiHeight) / 2;
     startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
   }
@@ -771,5 +788,83 @@ function closeSettings() {
   if (settingsContainer) {
     settingsContainer.destroy(true);
     settingsContainer = null;
+  }
+}
+
+function openBetMenu() {
+  if (betMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  betMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeBetMenu.call(this);
+    });
+
+  const panel = this.add.container(width / 2, height / 2);
+  const cols = 3;
+  const spacing = 10;
+  const buttonWidth = 100;
+  const buttonHeight = 40;
+  const rowsCount = Math.ceil(availableBets.length / cols);
+  const panelWidth = cols * buttonWidth + (cols - 1) * spacing + spacing * 2;
+  const panelHeight =
+    rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
+
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+
+  panel.add(panelBg);
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    backgroundColor: "#444",
+    padding: { x: 10, y: 5 },
+    fontFamily: "Arial",
+  };
+
+  availableBets.forEach((bet, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const x =
+      -panelWidth / 2 +
+      spacing +
+      col * (buttonWidth + spacing) +
+      buttonWidth / 2;
+    const y =
+      -panelHeight / 2 +
+      spacing +
+      row * (buttonHeight + spacing) +
+      buttonHeight / 2;
+    const text = this.add
+      .text(
+        x,
+        y,
+        `${currency.symbol} ${(bet / currency.subunits).toFixed(
+          currency.exponent,
+        )}`,
+        style,
+      )
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        currentBetIndex = idx;
+        currentBet = bet;
+        updateUI();
+        closeBetMenu.call(this);
+      });
+    panel.add(text);
+  });
+  betMenuContainer.add([bg, panel]);
+}
+
+function closeBetMenu() {
+  if (betMenuContainer) {
+    betMenuContainer.destroy(true);
+    betMenuContainer = null;
   }
 }
