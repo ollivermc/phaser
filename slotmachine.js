@@ -48,6 +48,8 @@ const symbolTextures = [
   "bonus_skateboard",
 ];
 
+const autoSpinOptions = [5, 10, 25, 50, 100, Infinity];
+
 const reels = [];
 let isSpinning = false;
 let availableBets = [];
@@ -58,6 +60,8 @@ let betButton;
 let spinButton;
 let autoSpinButton;
 let autoSpin = false;
+let autoSpinCount = 0;
+let autoSpinMenuContainer;
 let betMenuContainer;
 
 let finalScreen = null;
@@ -332,7 +336,7 @@ async function startGame() {
     });
 
   autoSpinButton = this.add
-    .text(0, 0, "AUTO OFF", {
+    .text(0, 0, "AUTO", {
       fontSize: "36px",
       color: "#ffffff",
       backgroundColor: "#444",
@@ -341,10 +345,12 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      autoSpin = !autoSpin;
-      updateAutoSpinButton();
-      if (autoSpin && !isSpinning) {
-        startSpin(this);
+      if (autoSpin) {
+        autoSpin = false;
+        autoSpinCount = 0;
+        updateAutoSpinButton();
+      } else {
+        openAutoSpinMenu.call(this);
       }
     });
   updateAutoSpinButton();
@@ -389,8 +395,14 @@ function updateUI() {
 }
 
 function updateAutoSpinButton() {
-  if (autoSpinButton) {
-    autoSpinButton.setText(`AUTO ${autoSpin ? "ON" : "OFF"}`);
+  if (!autoSpinButton) {
+    return;
+  }
+  if (autoSpin) {
+    const label = autoSpinCount === Infinity ? "\u221e" : autoSpinCount;
+    autoSpinButton.setText(`AUTO ${label}`);
+  } else {
+    autoSpinButton.setText("AUTO");
   }
 }
 
@@ -520,6 +532,15 @@ function update(time, delta) {
     updateUI();
     lastResult = null;
     if (autoSpin) {
+      if (autoSpinCount !== Infinity) {
+        autoSpinCount--;
+        if (autoSpinCount <= 0) {
+          autoSpin = false;
+          updateAutoSpinButton();
+          return;
+        }
+      }
+      updateAutoSpinButton();
       this.time.delayedCall(500, () => {
         if (autoSpin && !isSpinning) {
           startSpin(this);
@@ -908,5 +929,80 @@ function closeBetMenu() {
   if (betMenuContainer) {
     betMenuContainer.destroy(true);
     betMenuContainer = null;
+  }
+}
+
+function openAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  autoSpinMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeAutoSpinMenu.call(this);
+    });
+
+  const panel = this.add.container(width / 2, height / 2);
+  const cols = 3;
+  const spacing = 10;
+  const buttonWidth = 80;
+  const buttonHeight = 40;
+  const rowsCount = Math.ceil(autoSpinOptions.length / cols);
+  const panelWidth = cols * buttonWidth + (cols - 1) * spacing + spacing * 2;
+  const panelHeight =
+    rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
+
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+
+  panel.add(panelBg);
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    backgroundColor: "#444",
+    padding: { x: 10, y: 5 },
+    fontFamily: "Arial",
+  };
+
+  autoSpinOptions.forEach((count, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const x =
+      -panelWidth / 2 +
+      spacing +
+      col * (buttonWidth + spacing) +
+      buttonWidth / 2;
+    const y =
+      -panelHeight / 2 +
+      spacing +
+      row * (buttonHeight + spacing) +
+      buttonHeight / 2;
+    const label = count === Infinity ? "\u221e" : count;
+    const text = this.add
+      .text(x, y, `${label}`, style)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        autoSpinCount = count;
+        autoSpin = true;
+        updateAutoSpinButton();
+        if (!isSpinning) {
+          startSpin(this);
+        }
+        closeAutoSpinMenu.call(this);
+      });
+    panel.add(text);
+  });
+  autoSpinMenuContainer.add([bg, panel]);
+}
+
+function closeAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    autoSpinMenuContainer.destroy(true);
+    autoSpinMenuContainer = null;
   }
 }
