@@ -338,10 +338,8 @@ async function startGame() {
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
-      fontSize: "32px",
-      color: "#ffffff",
-      backgroundColor: "#666",
-      padding: { x: 5, y: 2 },
+      fontSize: "40px",
+      color: "#888888",
     })
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -582,24 +580,25 @@ function resizeUI(gameSize) {
   const margin = 20;
   if (width > height) {
     const right = settings.rightHand;
-    const x = right ? width - margin : margin;
+    const uiX = right ? width - margin : margin;
+    const settingsX = right ? margin : width - margin;
     spinButton.setOrigin(right ? 1 : 0, 0.5);
     balanceText.setOrigin(right ? 1 : 0, 0);
     betText.setOrigin(right ? 1 : 0, 1);
     betUpButton.setOrigin(right ? 1 : 0, 1);
     betDownButton.setOrigin(right ? 1 : 0, 1);
-    settingsButton.setOrigin(right ? 1 : 0, 0);
+    settingsButton.setOrigin(right ? 0 : 1, 0);
 
-    spinButton.setPosition(x, height / 2);
-    settingsButton.setPosition(x, margin);
-    balanceText.setPosition(x, margin + settingsButton.height + 5);
-    betDownButton.setPosition(x, height - margin);
-    betUpButton.setPosition(x, height - margin - betDownButton.height);
+    spinButton.setPosition(uiX, height / 2);
+    balanceText.setPosition(uiX, margin);
+    betDownButton.setPosition(uiX, height - margin);
+    betUpButton.setPosition(uiX, height - margin - betDownButton.height);
     if (right) {
-      betText.setPosition(x - betDownButton.width - 5, height - margin);
+      betText.setPosition(uiX - betDownButton.width - 5, height - margin);
     } else {
-      betText.setPosition(x + betDownButton.width + 5, height - margin);
+      betText.setPosition(uiX + betDownButton.width + 5, height - margin);
     }
+    settingsButton.setPosition(settingsX, margin);
   } else {
     const bottom = height - margin;
     spinButton.setOrigin(0.5, 1);
@@ -607,7 +606,7 @@ function resizeUI(gameSize) {
     betText.setOrigin(0, 1);
     betUpButton.setOrigin(0, 1);
     betDownButton.setOrigin(0, 1);
-    settingsButton.setOrigin(settings.rightHand ? 1 : 0, 0);
+    settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setPosition(width / 2, bottom);
     balanceText.setPosition(margin, bottom);
@@ -618,7 +617,7 @@ function resizeUI(gameSize) {
       bottom - betUpButton.height,
     );
     betDownButton.setPosition(betX + betText.width + 5, bottom);
-    const settingsX = settings.rightHand ? width - margin : margin;
+    const settingsX = settings.rightHand ? margin : width - margin;
     settingsButton.setPosition(settingsX, margin);
   }
 }
