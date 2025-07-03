@@ -351,7 +351,7 @@ async function startGame() {
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
-      fontSize: "40px",
+      fontSize: "80px",
       color: "#888888",
     })
     .setInteractive({ useHandCursor: true })
