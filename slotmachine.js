@@ -805,16 +805,50 @@ function openBetMenu() {
     });
 
   const panel = this.add.container(width / 2, height / 2);
+  const cols = 3;
+  const spacing = 10;
+  const buttonWidth = 100;
+  const buttonHeight = 40;
+  const rowsCount = Math.ceil(availableBets.length / cols);
+  const panelWidth = cols * buttonWidth + (cols - 1) * spacing + spacing * 2;
+  const panelHeight =
+    rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
+
   const panelBg = this.add
-    .rectangle(0, 0, 200, availableBets.length * 40 + 20, 0x222222, 0.9)
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
     .setOrigin(0.5);
 
   panel.add(panelBg);
-  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
-  const startY = -((availableBets.length - 1) * 30) / 2;
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    backgroundColor: "#444",
+    padding: { x: 10, y: 5 },
+    fontFamily: "Arial",
+  };
+
   availableBets.forEach((bet, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const x =
+      -panelWidth / 2 +
+      spacing +
+      col * (buttonWidth + spacing) +
+      buttonWidth / 2;
+    const y =
+      -panelHeight / 2 +
+      spacing +
+      row * (buttonHeight + spacing) +
+      buttonHeight / 2;
     const text = this.add
-      .text(0, startY + idx * 30, `${currency.symbol} ${(bet / currency.subunits).toFixed(currency.exponent)}`, style)
+      .text(
+        x,
+        y,
+        `${currency.symbol} ${(bet / currency.subunits).toFixed(
+          currency.exponent,
+        )}`,
+        style,
+      )
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
