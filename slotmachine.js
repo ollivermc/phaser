@@ -631,10 +631,10 @@ function resizeUI(gameSize) {
   const bottom = height - margin;
 
   betButton.setOrigin(0.5, 1).setPosition(startX, bottom);
-  autoSpinButton
+  spinButton
     .setOrigin(0.5, 1)
     .setPosition(startX + buttonWidth + margin, bottom);
-  spinButton
+  autoSpinButton
     .setOrigin(0.5, 1)
     .setPosition(startX + (buttonWidth + margin) * 2, bottom);
 
