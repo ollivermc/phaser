@@ -151,19 +151,19 @@ function preload() {
     wheelRight.destroy();
   });
 
-  this.load.image("spin", "assets/spin.png");
-  this.load.image("skateboard", "assets/sliced_skate_image_1.png");
-  this.load.image("skate", "assets/sliced_skate_image_2.png");
-  this.load.image("helmet", "assets/sliced_skate_image_3.png");
-  this.load.image("tools", "assets/sliced_skate_image_4.png");
-  this.load.image("shoe", "assets/sliced_skate_image_new_1.png");
-  this.load.image("wheel", "assets/sliced_skate_image_new_2.png");
-  this.load.image("can", "assets/sliced_skate_image_new_3.png");
-  this.load.image("badge", "assets/sliced_skate_image_new_4.png");
-  this.load.image("bonus_skateboard", "assets/scatter_image_1.png");
-  this.load.image("scatter_screamer", "assets/scatter_image_2.png");
-  this.load.image("scatter_badge", "assets/scatter_image_3.png");
-  this.load.image("bonus_helmet", "assets/scatter_image_4.png");
+  this.load.image("spin", "assets/ui/spin.png");
+  this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
+  this.load.image("skate", "assets/symbols/sliced_skate_image_2.png");
+  this.load.image("helmet", "assets/symbols/sliced_skate_image_3.png");
+  this.load.image("tools", "assets/symbols/sliced_skate_image_4.png");
+  this.load.image("shoe", "assets/symbols/sliced_skate_image_new_1.png");
+  this.load.image("wheel", "assets/symbols/sliced_skate_image_new_2.png");
+  this.load.image("can", "assets/symbols/sliced_skate_image_new_3.png");
+  this.load.image("badge", "assets/symbols/sliced_skate_image_new_4.png");
+  this.load.image("bonus_skateboard", "assets/symbols/scatter_image_1.png");
+  this.load.image("scatter_screamer", "assets/symbols/scatter_image_2.png");
+  this.load.image("scatter_badge", "assets/symbols/scatter_image_3.png");
+  this.load.image("bonus_helmet", "assets/symbols/scatter_image_4.png");
   this.load.audio("reelStop", "sounds/slotalign.wav");
   this.load.audio("bgMusic", "music/Spinning Lights.mp3");
 }
