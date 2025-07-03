@@ -23,6 +23,19 @@ const SYMBOL_SPACING = 200;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
 
+// Game settings with defaults
+const settings = {
+  quickSpin: false,
+  rightHand: true,
+  music: true,
+  sound: true,
+  volume: 1,
+};
+
+let settingsButton;
+let settingsContainer;
+let bgMusic;
+
 const symbolTextures = [
   "skateboard",
   "skate",
@@ -138,6 +151,7 @@ function preload() {
   this.load.image("scatter_badge", "assets/scatter_image_3.png");
   this.load.image("bonus_helmet", "assets/scatter_image_4.png");
   this.load.audio("reelStop", "sounds/slotalign.wav");
+  this.load.audio("bgMusic", "music/Spinning Lights.mp3");
 }
 
 function create() {
@@ -209,6 +223,15 @@ async function startGame() {
   cols = initData.options.layout.reels;
   baseReels = initData.options.reels.main.map((col) => [...col]);
   currentScreen = initData.options.screen.map((row) => [...row]);
+
+  // start background music if enabled
+  if (!bgMusic) {
+    bgMusic = this.sound.add("bgMusic", { loop: true, volume: settings.volume });
+  }
+  this.sound.volume = settings.volume;
+  if (settings.music) {
+    bgMusic.play();
+  }
   for (let c = 0; c < cols; c++) {
     const reel = {
       sprites: [],
@@ -313,12 +336,27 @@ async function startGame() {
       updateUI();
     });
 
+  settingsButton = this.add
+    .text(0, 0, "\u2699", {
+      fontSize: "40px",
+      color: "#888888",
+    })
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      if (settingsContainer) {
+        closeSettings.call(this);
+      } else {
+        openSettings.call(this);
+      }
+    });
+
   uiContainer = this.add.container(0, 0, [
     balanceText,
     spinButton,
     betText,
     betUpButton,
     betDownButton,
+    settingsButton,
   ]);
 
   updateUI();
@@ -382,7 +420,7 @@ async function spin(result) {
     const reel = reels[c];
     const lastCol = currentScreen.map((row) => row[c]);
     const finalCol = finalScreen.map((row) => row[c]);
-    const delay = c * 300 + 1000;
+    const delay = (c * 300 + 1000) * (settings.quickSpin ? 0.5 : 1);
     const constantTime = delay / 1000;
     const decelTime = SPIN_SPEED / DECELERATION;
     const travel = SPIN_SPEED * constantTime + 0.5 * SPIN_SPEED * decelTime;
@@ -404,7 +442,7 @@ async function spin(result) {
     const reel = reels[i];
     reel.speed = SPIN_SPEED;
     reel.spinning = true;
-    const delay = i * 300 + 1000;
+    const delay = (i * 300 + 1000) * (settings.quickSpin ? 0.5 : 1);
     reel.stopTime = now + delay;
   }
 }
@@ -460,7 +498,9 @@ function update(time, delta) {
 }
 
 function alignReel(reel, col) {
-  this.sound.play("reelStop");
+  if (settings.sound) {
+    this.sound.play("reelStop");
+  }
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
@@ -532,34 +572,41 @@ function clearWin() {
 }
 
 function resizeUI(gameSize) {
-  if (!spinButton || !balanceText || !betText) {
+  if (!spinButton || !balanceText || !betText || !settingsButton) {
     return;
   }
   const width = gameSize.width;
   const height = gameSize.height;
   const margin = 20;
   if (width > height) {
-    // landscape - UI on the right
-    spinButton.setOrigin(1, 0.5);
-    balanceText.setOrigin(1, 0);
-    betText.setOrigin(1, 1);
-    betUpButton.setOrigin(1, 1);
-    betDownButton.setOrigin(1, 1);
+    const right = settings.rightHand;
+    const uiX = right ? width - margin : margin;
+    const settingsX = right ? margin : width - margin;
+    spinButton.setOrigin(right ? 1 : 0, 0.5);
+    balanceText.setOrigin(right ? 1 : 0, 0);
+    betText.setOrigin(right ? 1 : 0, 1);
+    betUpButton.setOrigin(right ? 1 : 0, 1);
+    betDownButton.setOrigin(right ? 1 : 0, 1);
+    settingsButton.setOrigin(right ? 0 : 1, 0);
 
-    const right = width - margin;
-    spinButton.setPosition(right, height / 2);
-    balanceText.setPosition(right, margin);
-    betDownButton.setPosition(right, height - margin);
-    betUpButton.setPosition(right, height - margin - betDownButton.height);
-    betText.setPosition(right - betDownButton.width - 5, height - margin);
+    spinButton.setPosition(uiX, height / 2);
+    balanceText.setPosition(uiX, margin);
+    betDownButton.setPosition(uiX, height - margin);
+    betUpButton.setPosition(uiX, height - margin - betDownButton.height);
+    if (right) {
+      betText.setPosition(uiX - betDownButton.width - 5, height - margin);
+    } else {
+      betText.setPosition(uiX + betDownButton.width + 5, height - margin);
+    }
+    settingsButton.setPosition(settingsX, margin);
   } else {
-    // portrait - UI at bottom
     const bottom = height - margin;
     spinButton.setOrigin(0.5, 1);
     balanceText.setOrigin(0, 1);
     betText.setOrigin(0, 1);
     betUpButton.setOrigin(0, 1);
     betDownButton.setOrigin(0, 1);
+    settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setPosition(width / 2, bottom);
     balanceText.setPosition(margin, bottom);
@@ -570,6 +617,8 @@ function resizeUI(gameSize) {
       bottom - betUpButton.height,
     );
     betDownButton.setPosition(betX + betText.width + 5, bottom);
+    const settingsX = settings.rightHand ? margin : width - margin;
+    settingsButton.setPosition(settingsX, margin);
   }
 }
 
@@ -581,7 +630,7 @@ function layoutGame(gameSize) {
   const height = gameSize.height;
   const margin = 20;
   if (width > height) {
-    // landscape - leave room for UI on right
+    // landscape - leave room for UI on side
     spriteScale = 0.25;
     const uiWidth =
       Math.max(
@@ -592,7 +641,8 @@ function layoutGame(gameSize) {
       margin * 2;
     const availableWidth = width - uiWidth;
     centerY = height / 2;
-    startX = (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
+    const offsetX = settings.rightHand ? 0 : uiWidth;
+    startX = offsetX + (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
   } else {
     spriteScale = 0.3;
     const uiHeight = spinButton ? spinButton.height + margin : 80;
@@ -615,5 +665,111 @@ function layoutGame(gameSize) {
   }
   if (winLine) {
     winLine.clear();
+  }
+}
+
+function openSettings() {
+  if (settingsContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  settingsContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive();
+
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, 300, 280, 0x222222, 0.9)
+    .setOrigin(0.5);
+  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+
+  const quickText = this.add
+    .text(0, -100, `Quick Spin: ${settings.quickSpin ? "ON" : "OFF"}`, style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      settings.quickSpin = !settings.quickSpin;
+      quickText.setText(`Quick Spin: ${settings.quickSpin ? "ON" : "OFF"}`);
+    });
+
+  const handText = this.add
+    .text(0, -50, `Hand: ${settings.rightHand ? "RIGHT" : "LEFT"}`, style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      settings.rightHand = !settings.rightHand;
+      handText.setText(`Hand: ${settings.rightHand ? "RIGHT" : "LEFT"}`);
+      resizeUI.call(this, this.scale.gameSize);
+      layoutGame.call(this, this.scale.gameSize);
+    });
+
+  const musicText = this.add
+    .text(0, 0, `Music: ${settings.music ? "ON" : "OFF"}`, style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      settings.music = !settings.music;
+      musicText.setText(`Music: ${settings.music ? "ON" : "OFF"}`);
+      if (settings.music) {
+        bgMusic.play();
+      } else {
+        bgMusic.stop();
+      }
+    });
+
+  const soundText = this.add
+    .text(0, 50, `Sound FX: ${settings.sound ? "ON" : "OFF"}`, style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      settings.sound = !settings.sound;
+      soundText.setText(`Sound FX: ${settings.sound ? "ON" : "OFF"}`);
+    });
+
+  const volumeText = this.add
+    .text(0, 100, `Volume: ${Math.round(settings.volume * 100)}%`, style)
+    .setOrigin(0.5);
+  const volDown = this.add
+    .text(-40, 140, "-", style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      settings.volume = Math.max(0, Math.round((settings.volume - 0.1) * 10) / 10);
+      this.sound.volume = settings.volume;
+      if (bgMusic) {
+        bgMusic.setVolume(settings.volume);
+      }
+      volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
+    });
+  const volUp = this.add
+    .text(40, 140, "+", style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      settings.volume = Math.min(1, Math.round((settings.volume + 0.1) * 10) / 10);
+      this.sound.volume = settings.volume;
+      if (bgMusic) {
+        bgMusic.setVolume(settings.volume);
+      }
+      volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
+    });
+
+  const closeBtn = this.add
+    .text(0, 190, "Close", { fontSize: "28px", color: "#ffffff", backgroundColor: "#444", padding: { x: 10, y: 5 } })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      closeSettings.call(this);
+    });
+
+  panel.add([panelBg, quickText, handText, musicText, soundText, volumeText, volDown, volUp, closeBtn]);
+  settingsContainer.add([bg, panel]);
+}
+
+function closeSettings() {
+  if (settingsContainer) {
+    settingsContainer.destroy(true);
+    settingsContainer = null;
   }
 }
