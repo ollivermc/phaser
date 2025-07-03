@@ -284,7 +284,7 @@ async function startGame() {
 
   // Phaser based UI
   balanceText = this.add.text(0, 0, "", {
-    fontSize: "36px",
+    fontSize: "72px",
     color: "#ffffff",
     fontFamily: "Arial",
   });
