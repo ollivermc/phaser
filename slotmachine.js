@@ -626,8 +626,13 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
+    spinButton.setFontSize(48);
+    autoSpinButton.setFontSize(28);
+    betButton.setFontSize(28);
+    balanceText.setFontSize(28);
+
     const spacing =
-      Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 +
+      Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
       margin;
     spinButton.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
@@ -642,13 +647,17 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
-    spinButton.setPosition(width / 2, bottom);
-    const autoSpacing =
-      spinButton.width / 2 + margin + autoSpinButton.width / 2;
-    const betSpacing = spinButton.width / 2 + margin + betButton.width / 2;
-    autoSpinButton.setPosition(width / 2 - autoSpacing, bottom);
-    betButton.setPosition(width / 2 + betSpacing, bottom);
-    balanceText.setPosition(margin, bottom);
+    spinButton.setFontSize(72);
+    autoSpinButton.setFontSize(40);
+    betButton.setFontSize(40);
+    balanceText.setFontSize(40);
+
+    const quarter = width / 4;
+    spinButton.setPosition(quarter * 2, bottom);
+    autoSpinButton.setPosition(quarter, bottom);
+    betButton.setPosition(quarter * 3, bottom);
+    const balanceOffset = 80;
+    balanceText.setPosition(margin, bottom - balanceOffset);
     const settingsX = settings.rightHand ? margin : width - margin;
     settingsButton.setPosition(settingsX, margin);
   }
