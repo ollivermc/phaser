@@ -307,14 +307,8 @@ async function startGame() {
     });
 
   spinButton = this.add
-    // .image(0, 0, "spin")
-    // .setScale(0.5)
-    .text(0, 0, "SPIN", {
-      fontSize: "60px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-    })
+    .image(0, 0, "spin")
+    .setScale(0.5)
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -626,13 +620,17 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
-    spinButton.setFontSize(48);
+    spinButton.setScale(0.5);
     autoSpinButton.setFontSize(28);
     betButton.setFontSize(28);
     balanceText.setFontSize(28);
 
     const spacing =
-      Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
+      Math.max(
+        spinButton.displayHeight,
+        autoSpinButton.displayHeight,
+        betButton.displayHeight,
+      ) +
       margin;
     spinButton.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
@@ -647,7 +645,7 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
-    spinButton.setFontSize(72);
+    spinButton.setScale(0.7);
     autoSpinButton.setFontSize(40);
     betButton.setFontSize(40);
     balanceText.setFontSize(40);
@@ -675,10 +673,10 @@ function layoutGame(gameSize) {
     spriteScale = 0.25;
     const uiWidth =
       Math.max(
-        spinButton.width,
-        autoSpinButton.width,
-        betButton.width,
-        balanceText.width,
+        spinButton.displayWidth,
+        autoSpinButton.displayWidth,
+        betButton.displayWidth,
+        balanceText.displayWidth,
       ) +
       margin * 2;
     const availableWidth = width - uiWidth;
@@ -688,7 +686,11 @@ function layoutGame(gameSize) {
   } else {
     spriteScale = 0.3;
     const uiHeight = spinButton
-      ? Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
+      ? Math.max(
+          spinButton.displayHeight,
+          autoSpinButton.displayHeight,
+          betButton.displayHeight,
+        ) +
         margin * 2
       : 80;
     centerY = (height - uiHeight) / 2;
