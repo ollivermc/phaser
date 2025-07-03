@@ -718,7 +718,7 @@ function openSettings() {
   const panelBg = this.add
     .rectangle(0, 0, 300, 280, 0x222222, 0.9)
     .setOrigin(0.5);
-  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+  const style = { fontSize: "48px", color: "#ffffff", fontFamily: "Arial" };
 
   const quickText = this.add
     .text(0, -100, `Quick Spin: ${settings.quickSpin ? "ON" : "OFF"}`, style)
@@ -799,7 +799,7 @@ function openSettings() {
 
   const closeBtn = this.add
     .text(0, 190, "Close", {
-      fontSize: "28px",
+      fontSize: "56px",
       color: "#ffffff",
       backgroundColor: "#444",
       padding: { x: 10, y: 5 },
