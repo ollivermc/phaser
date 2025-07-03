@@ -76,6 +76,18 @@ let winText;
 const offset = 100;
 let spriteScale = 0.3;
 
+export function formatCurrency(amount) {
+  const formattedAmount = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: currency.code,
+    currencyDisplay: "symbol",
+    minimumFractionDigits: currency.exponent,
+    maximumFractionDigits: currency.exponent,
+  }).format(amount / currency.subunits);
+
+  return formattedAmount;
+}
+
 function preload() {
   this.load.image("logo", "assets/logo.png");
   const { width, height } = this.cameras.main;
@@ -228,7 +240,10 @@ async function startGame() {
 
   // start background music if enabled
   if (!bgMusic) {
-    bgMusic = this.sound.add("bgMusic", { loop: true, volume: settings.volume });
+    bgMusic = this.sound.add("bgMusic", {
+      loop: true,
+      volume: settings.volume,
+    });
   }
   this.sound.volume = settings.volume;
   if (settings.music) {
@@ -369,12 +384,8 @@ function updateUI() {
   if (!balanceText || !betButton) {
     return;
   }
-  balanceText.setText(
-    `${currency.symbol} ${(balance / currency.subunits).toFixed(currency.exponent)}`,
-  );
-  betButton.setText(
-    `${currency.symbol} ${(currentBet / currency.subunits).toFixed(currency.exponent)}`,
-  );
+  balanceText.setText(`${formatCurrency(balance)}`);
+  betButton.setText(`${formatCurrency(currentBet)}`);
 }
 
 function updateAutoSpinButton() {
@@ -578,8 +589,8 @@ function highlightWin(outcome, features) {
       }
     }
   }
-  const amount = (outcome.win / currency.subunits).toFixed(currency.exponent);
-  winText.setText(`WIN ${currency.symbol} ${amount}`);
+  const amount = outcome.win;
+  winText.setText(`WIN ${formatCurrency(amount)}`);
   winText.setVisible(true);
 }
 
@@ -593,7 +604,13 @@ function clearWin() {
 }
 
 function resizeUI(gameSize) {
-  if (!spinButton || !balanceText || !betButton || !autoSpinButton || !settingsButton) {
+  if (
+    !spinButton ||
+    !balanceText ||
+    !betButton ||
+    !autoSpinButton ||
+    !settingsButton
+  ) {
     return;
   }
   const width = gameSize.width;
@@ -609,7 +626,9 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
-    const spacing = Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 + margin;
+    const spacing =
+      Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 +
+      margin;
     spinButton.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
     betButton.setPosition(uiX, height / 2 + spacing);
@@ -752,7 +771,10 @@ function openSettings() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      settings.volume = Math.max(0, Math.round((settings.volume - 0.1) * 10) / 10);
+      settings.volume = Math.max(
+        0,
+        Math.round((settings.volume - 0.1) * 10) / 10,
+      );
       this.sound.volume = settings.volume;
       if (bgMusic) {
         bgMusic.setVolume(settings.volume);
@@ -764,7 +786,10 @@ function openSettings() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      settings.volume = Math.min(1, Math.round((settings.volume + 0.1) * 10) / 10);
+      settings.volume = Math.min(
+        1,
+        Math.round((settings.volume + 0.1) * 10) / 10,
+      );
       this.sound.volume = settings.volume;
       if (bgMusic) {
         bgMusic.setVolume(settings.volume);
@@ -773,14 +798,29 @@ function openSettings() {
     });
 
   const closeBtn = this.add
-    .text(0, 190, "Close", { fontSize: "28px", color: "#ffffff", backgroundColor: "#444", padding: { x: 10, y: 5 } })
+    .text(0, 190, "Close", {
+      fontSize: "28px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+    })
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
       closeSettings.call(this);
     });
 
-  panel.add([panelBg, quickText, handText, musicText, soundText, volumeText, volDown, volUp, closeBtn]);
+  panel.add([
+    panelBg,
+    quickText,
+    handText,
+    musicText,
+    soundText,
+    volumeText,
+    volDown,
+    volUp,
+    closeBtn,
+  ]);
   settingsContainer.add([bg, panel]);
 }
 
@@ -841,14 +881,7 @@ function openBetMenu() {
       row * (buttonHeight + spacing) +
       buttonHeight / 2;
     const text = this.add
-      .text(
-        x,
-        y,
-        `${currency.symbol} ${(bet / currency.subunits).toFixed(
-          currency.exponent,
-        )}`,
-        style,
-      )
+      .text(x, y, `${formatCurrency(bet)}`, style)
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
