@@ -291,7 +291,7 @@ async function startGame() {
 
   betButton = this.add
     .text(0, 0, "", {
-      fontSize: "36px",
+      fontSize: "72px",
       color: "#ffffff",
       backgroundColor: "#444",
       padding: { x: 10, y: 5 },
@@ -310,7 +310,7 @@ async function startGame() {
     // .image(0, 0, "spin")
     // .setScale(0.5)
     .text(0, 0, "SPIN", {
-      fontSize: "60px",
+      fontSize: "120px",
       color: "#ffffff",
       backgroundColor: "#444",
       padding: { x: 10, y: 5 },
@@ -333,7 +333,7 @@ async function startGame() {
 
   autoSpinButton = this.add
     .text(0, 0, "AUTO OFF", {
-      fontSize: "36px",
+      fontSize: "72px",
       color: "#ffffff",
       backgroundColor: "#444",
       padding: { x: 10, y: 5 },
