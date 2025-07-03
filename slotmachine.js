@@ -277,6 +277,7 @@ async function startGame() {
       fontFamily: "Arial",
     })
     .setOrigin(0.5)
+    .setDepth(10)
     .setVisible(false);
   winText.setShadow(0, 0, "#ffff00", 10, true, true);
 
@@ -497,21 +498,25 @@ function update(time, delta) {
   }
   if (!anySpinning) {
     isSpinning = false;
-    // this.game.canvas.style.filter = "";
-    if (spinButton) {
-      spinButton.setAlpha(1);
-      spinButton.setInteractive({ useHandCursor: true });
-    }
+    // update final screen before showing the result
     if (finalScreen) {
       currentScreen = finalScreen.map((row) => [...row]);
       finalScreen = null;
     }
+
+    // show winnings before allowing another spin
     if (lastResult && lastResult.outcome.win > 0) {
       highlightWin.call(this, lastResult.outcome, lastResult.features);
     } else {
       clearWin();
     }
     updateUI();
+
+    if (spinButton) {
+      spinButton.setAlpha(1);
+      spinButton.setInteractive({ useHandCursor: true });
+    }
+
     lastResult = null;
     if (autoSpin) {
       this.time.delayedCall(500, () => {
