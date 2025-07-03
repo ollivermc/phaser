@@ -22,7 +22,7 @@ export async function init() {
       state: "ready",
     },
     options: {
-      available_bets: [1, 2, 3, 4, 5, 10, 20, 50, 100, 500, 1000, 2000],
+      available_bets: [1, 5, 10, 20, 25, 50, 100, 200, 300, 400, 500, 1000],
       currency: {
         code: "FUN",
         exponent: 2,
