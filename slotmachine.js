@@ -702,6 +702,7 @@ function openSettings() {
       settings.rightHand = !settings.rightHand;
       handText.setText(`Hand: ${settings.rightHand ? "RIGHT" : "LEFT"}`);
       resizeUI.call(this, this.scale.gameSize);
+      layoutGame.call(this, this.scale.gameSize);
     });
 
   const musicText = this.add
