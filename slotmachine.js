@@ -58,6 +58,7 @@ let betButton;
 let spinButton;
 let autoSpinButton;
 let autoSpin = false;
+let betMenuContainer;
 
 let finalScreen = null;
 let rows = 0;
@@ -283,9 +284,11 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      currentBetIndex = (currentBetIndex + 1) % availableBets.length;
-      currentBet = availableBets[currentBetIndex];
-      updateUI();
+      if (betMenuContainer) {
+        closeBetMenu.call(this);
+      } else {
+        openBetMenu.call(this);
+      }
     });
 
   spinButton = this.add
@@ -606,9 +609,10 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
+    const spacing = Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 + margin;
     spinButton.setPosition(uiX, height / 2);
-    autoSpinButton.setPosition(uiX, height / 2 - spinButton.height - margin / 2);
-    betButton.setPosition(uiX, height / 2 + spinButton.height + margin / 2);
+    autoSpinButton.setPosition(uiX, height / 2 - spacing);
+    betButton.setPosition(uiX, height / 2 + spacing);
     balanceText.setPosition(uiX, margin);
     settingsButton.setPosition(settingsX, margin);
   } else {
@@ -620,14 +624,11 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setPosition(width / 2, bottom);
-    autoSpinButton.setPosition(
-      width / 2 - spinButton.width / 2 - autoSpinButton.width / 2 - margin,
-      bottom,
-    );
-    betButton.setPosition(
-      width / 2 + spinButton.width / 2 + betButton.width / 2 + margin,
-      bottom,
-    );
+    const autoSpacing =
+      spinButton.width / 2 + margin + autoSpinButton.width / 2;
+    const betSpacing = spinButton.width / 2 + margin + betButton.width / 2;
+    autoSpinButton.setPosition(width / 2 - autoSpacing, bottom);
+    betButton.setPosition(width / 2 + betSpacing, bottom);
     balanceText.setPosition(margin, bottom);
     const settingsX = settings.rightHand ? margin : width - margin;
     settingsButton.setPosition(settingsX, margin);
@@ -658,7 +659,10 @@ function layoutGame(gameSize) {
     startX = offsetX + (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
   } else {
     spriteScale = 0.3;
-    const uiHeight = spinButton ? spinButton.height + margin : 80;
+    const uiHeight = spinButton
+      ? Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
+        margin * 2
+      : 80;
     centerY = (height - uiHeight) / 2;
     startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
   }
@@ -784,5 +788,49 @@ function closeSettings() {
   if (settingsContainer) {
     settingsContainer.destroy(true);
     settingsContainer = null;
+  }
+}
+
+function openBetMenu() {
+  if (betMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  betMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeBetMenu.call(this);
+    });
+
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, 200, availableBets.length * 40 + 20, 0x222222, 0.9)
+    .setOrigin(0.5);
+
+  panel.add(panelBg);
+  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+  const startY = -((availableBets.length - 1) * 30) / 2;
+  availableBets.forEach((bet, idx) => {
+    const text = this.add
+      .text(0, startY + idx * 30, `${currency.symbol} ${(bet / currency.subunits).toFixed(currency.exponent)}`, style)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        currentBetIndex = idx;
+        currentBet = bet;
+        updateUI();
+        closeBetMenu.call(this);
+      });
+    panel.add(text);
+  });
+  betMenuContainer.add([bg, panel]);
+}
+
+function closeBetMenu() {
+  if (betMenuContainer) {
+    betMenuContainer.destroy(true);
+    betMenuContainer = null;
   }
 }
