@@ -57,7 +57,8 @@ let balanceText;
 let betButton;
 let spinButton;
 let autoSpinButton;
-let autoSpin = false;
+let autoSpinCount = 0;
+let autoSpinMenuContainer;
 let betMenuContainer;
 
 let finalScreen = null;
@@ -341,10 +342,10 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      autoSpin = !autoSpin;
-      updateAutoSpinButton();
-      if (autoSpin && !isSpinning) {
-        startSpin(this);
+      if (autoSpinMenuContainer) {
+        closeAutoSpinMenu.call(this);
+      } else {
+        openAutoSpinMenu.call(this);
       }
     });
   updateAutoSpinButton();
@@ -389,8 +390,15 @@ function updateUI() {
 }
 
 function updateAutoSpinButton() {
-  if (autoSpinButton) {
-    autoSpinButton.setText(`AUTO ${autoSpin ? "ON" : "OFF"}`);
+  if (!autoSpinButton) {
+    return;
+  }
+  if (autoSpinCount === 0) {
+    autoSpinButton.setText("AUTO OFF");
+  } else if (autoSpinCount === Infinity) {
+    autoSpinButton.setText("AUTO \u221e");
+  } else {
+    autoSpinButton.setText(`AUTO x${autoSpinCount}`);
   }
 }
 
@@ -519,12 +527,18 @@ function update(time, delta) {
     }
     updateUI();
     lastResult = null;
-    if (autoSpin) {
-      this.time.delayedCall(500, () => {
-        if (autoSpin && !isSpinning) {
-          startSpin(this);
-        }
-      });
+    if (autoSpinCount) {
+      if (autoSpinCount !== Infinity) {
+        autoSpinCount--;
+      }
+      updateAutoSpinButton();
+      if (autoSpinCount) {
+        this.time.delayedCall(500, () => {
+          if (autoSpinCount && !isSpinning) {
+            startSpin(this);
+          }
+        });
+      }
     }
   }
 }
@@ -867,5 +881,68 @@ function closeBetMenu() {
   if (betMenuContainer) {
     betMenuContainer.destroy(true);
     betMenuContainer = null;
+  }
+}
+
+function openAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  autoSpinMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeAutoSpinMenu.call(this);
+    });
+
+  const panel = this.add.container(width / 2, height / 2);
+  const options = [10, 25, 50, 100, Infinity];
+  const spacing = 10;
+  const buttonWidth = 140;
+  const buttonHeight = 50;
+  const panelHeight =
+    options.length * buttonHeight + (options.length - 1) * spacing + spacing * 2;
+
+  const panelBg = this.add
+    .rectangle(0, 0, buttonWidth + spacing * 2, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  panel.add(panelBg);
+
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    backgroundColor: "#444",
+    padding: { x: 10, y: 5 },
+    fontFamily: "Arial",
+  };
+
+  options.forEach((count, idx) => {
+    const y =
+      -panelHeight / 2 + spacing + idx * (buttonHeight + spacing) + buttonHeight / 2;
+    const label = count === Infinity ? "\u221e" : count.toString();
+    const opt = this.add
+      .text(0, y, label, style)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        autoSpinCount = count;
+        updateAutoSpinButton();
+        closeAutoSpinMenu.call(this);
+        if (autoSpinCount && !isSpinning) {
+          startSpin(this);
+        }
+      });
+    panel.add(opt);
+  });
+
+  autoSpinMenuContainer.add([bg, panel]);
+}
+
+function closeAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    autoSpinMenuContainer.destroy(true);
+    autoSpinMenuContainer = null;
   }
 }
