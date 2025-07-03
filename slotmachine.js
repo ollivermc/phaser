@@ -20,6 +20,7 @@ const REEL_WIDTH = 200;
 let startX = 200;
 let centerY = 300;
 const SYMBOL_SPACING = 200;
+let symbolSpacing = SYMBOL_SPACING;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
 
@@ -261,7 +262,7 @@ async function startGame() {
     const x = startX + c * REEL_WIDTH;
     for (let r = 0; r < rows; r++) {
       const id = currentScreen[r][c];
-      const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      const y = centerY + (r - (rows - 1) / 2) * symbolSpacing;
       const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
       sprite.setScale(spriteScale);
       reel.sprites.push(sprite);
@@ -451,7 +452,7 @@ async function spin(result) {
     const travel = SPIN_SPEED * constantTime + 0.5 * SPIN_SPEED * decelTime;
     const loops = Math.max(
       lastCol.length + finalCol.length,
-      Math.round(travel / (SYMBOL_SPACING * rows)),
+      Math.round(travel / (symbolSpacing * rows)),
     );
     const randomCount = Math.max(0, loops - lastCol.length - finalCol.length);
     const randomSymbols = Phaser.Utils.Array.Shuffle([...baseReels[c]]).slice(
@@ -485,8 +486,8 @@ function update(time, delta) {
     anySpinning = true;
     for (const sprite of reel.sprites) {
       sprite.y += reel.speed * (delta / 1000);
-      if (sprite.y >= centerY + SYMBOL_SPACING) {
-        sprite.y -= SYMBOL_SPACING * reel.sprites.length;
+      if (sprite.y >= centerY + symbolSpacing) {
+        sprite.y -= symbolSpacing * reel.sprites.length;
         const nextId = reel.order[reel.index % reel.order.length];
         reel.index++;
         sprite.setTexture(symbolTextures[parseInt(nextId, 10)]);
@@ -536,7 +537,7 @@ function alignReel(reel, col) {
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
-    const targetY = centerY - SYMBOL_SPACING + i * SYMBOL_SPACING;
+    const targetY = centerY - symbolSpacing + i * symbolSpacing;
     this.tweens.add({
       targets: sprite,
       y: targetY,
@@ -577,7 +578,7 @@ function highlightWin(outcome, features) {
           for (let c = 0; c < line.length; c++) {
             const row = line[c];
             const x = startX + c * REEL_WIDTH;
-            const y = centerY + (row - (rows - 1) / 2) * SYMBOL_SPACING;
+            const y = centerY + (row - (rows - 1) / 2) * symbolSpacing;
             if (c === 0) {
               winLine.moveTo(x, y);
             } else {
@@ -616,6 +617,17 @@ function resizeUI(gameSize) {
   const width = gameSize.width;
   const height = gameSize.height;
   const margin = 20;
+  if (width > height) {
+    spinButton.setFontSize(40);
+    autoSpinButton.setFontSize(26);
+    betButton.setFontSize(26);
+    balanceText.setFontSize(26);
+  } else {
+    spinButton.setFontSize(60);
+    autoSpinButton.setFontSize(36);
+    betButton.setFontSize(36);
+    balanceText.setFontSize(36);
+  }
   if (width > height) {
     const right = settings.rightHand;
     const uiX = right ? width - margin : margin;
@@ -673,6 +685,8 @@ function layoutGame(gameSize) {
       ) +
       margin * 2;
     const availableWidth = width - uiWidth;
+    const verticalSpace = height - margin * 2;
+    symbolSpacing = Math.min(SYMBOL_SPACING, verticalSpace / (rows - 1));
     centerY = height / 2;
     const offsetX = settings.rightHand ? 0 : uiWidth;
     startX = offsetX + (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
@@ -682,6 +696,8 @@ function layoutGame(gameSize) {
       ? Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
         margin * 2
       : 80;
+    const verticalSpace = height - uiHeight - margin * 2;
+    symbolSpacing = Math.min(SYMBOL_SPACING, verticalSpace / (rows - 1));
     centerY = (height - uiHeight) / 2;
     startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
   }
@@ -690,7 +706,7 @@ function layoutGame(gameSize) {
     const x = startX + c * REEL_WIDTH;
     for (let r = 0; r < reel.sprites.length; r++) {
       const sprite = reel.sprites[r];
-      const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      const y = centerY + (r - (rows - 1) / 2) * symbolSpacing;
       sprite.setPosition(x, y);
       sprite.setScale(spriteScale);
     }
