@@ -52,6 +52,8 @@ let baseReels = [];
 let currentScreen = [];
 let uiContainer;
 let logoImage;
+let welcomeText;
+let promoText;
 const game = new Phaser.Game(config);
 let balance;
 let currency;
@@ -76,11 +78,6 @@ function preload() {
     })
     .setOrigin(0.5);
 
-  this.load.once("filecomplete-image-logo", () => {
-    logoImage = this.add
-      .image(width / 2, height / 2 - offset, "logo")
-      .setOrigin(0.5);
-  });
   const board = this.add.rectangle(
     width / 2 - 150,
     height / 2 + offset,
@@ -142,6 +139,21 @@ function preload() {
 
 function create() {
   const { width, height } = this.cameras.main;
+  logoImage = this.add
+    .image(width / 2, height / 2 - offset, "logo")
+    .setOrigin(0.5);
+  welcomeText = this.add
+    .text(width / 2, height / 2, "WELCOME", {
+      fontSize: "32px",
+      color: "#ffffff",
+    })
+    .setOrigin(0.5);
+  promoText = this.add
+    .text(width / 2, height / 2 + 40, "Spin the reels and enjoy bonus features!", {
+      fontSize: "20px",
+      color: "#ffffff",
+    })
+    .setOrigin(0.5);
   const continueText = this.add
     .text(width / 2, height / 2 + offset, "CONTINUE", {
       fontSize: "32px",
@@ -152,13 +164,15 @@ function create() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true });
 
-  // Get actual width and height after padding
-  const paddedWidth = continueText.width;
-  const paddedHeight = continueText.height;
-
   continueText.on("pointerdown", () => {
     if (logoImage) {
       logoImage.destroy();
+    }
+    if (welcomeText) {
+      welcomeText.destroy();
+    }
+    if (promoText) {
+      promoText.destroy();
     }
     continueText.destroy();
     startGame.call(this);
