@@ -342,6 +342,14 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
+      if (autoSpinCount) {
+        autoSpinCount = 0;
+        updateAutoSpinButton();
+        if (autoSpinMenuContainer) {
+          closeAutoSpinMenu.call(this);
+        }
+        return;
+      }
       if (autoSpinMenuContainer) {
         closeAutoSpinMenu.call(this);
       } else {
@@ -396,9 +404,9 @@ function updateAutoSpinButton() {
   if (autoSpinCount === 0) {
     autoSpinButton.setText("AUTO OFF");
   } else if (autoSpinCount === Infinity) {
-    autoSpinButton.setText("AUTO \u221e");
+    autoSpinButton.setText("STOP \u221e");
   } else {
-    autoSpinButton.setText(`AUTO x${autoSpinCount}`);
+    autoSpinButton.setText(`STOP ${autoSpinCount}`);
   }
 }
 
