@@ -621,7 +621,7 @@ function resizeUI(gameSize) {
     autoSpinButton.setOrigin(0.5, 0.5);
     betButton.setOrigin(0.5, 0.5);
     balanceText.setOrigin(0, 0);
-    settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
+    settingsButton.setOrigin(1, 0);
 
     const spacing =
       Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 +
@@ -630,15 +630,14 @@ function resizeUI(gameSize) {
     autoSpinButton.setPosition(width / 2, height / 2 - spacing);
     betButton.setPosition(width / 2, height / 2 + spacing);
     balanceText.setPosition(margin, margin);
-    const settingsX = settings.rightHand ? margin : width - margin;
-    settingsButton.setPosition(settingsX, margin);
+    settingsButton.setPosition(width - margin, margin);
   } else {
     const bottom = height - margin;
     spinButton.setOrigin(0.5, 1);
     autoSpinButton.setOrigin(0.5, 1);
     betButton.setOrigin(0.5, 1);
     balanceText.setOrigin(0, 0);
-    settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
+    settingsButton.setOrigin(1, 0);
 
     spinButton.setPosition(width / 2, bottom);
     const autoSpacing =
@@ -647,8 +646,7 @@ function resizeUI(gameSize) {
     autoSpinButton.setPosition(width / 2 - autoSpacing, bottom);
     betButton.setPosition(width / 2 + betSpacing, bottom);
     balanceText.setPosition(margin, margin);
-    const settingsX = settings.rightHand ? margin : width - margin;
-    settingsButton.setPosition(settingsX, margin);
+    settingsButton.setPosition(width - margin, margin);
   }
 }
 
