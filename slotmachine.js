@@ -54,6 +54,7 @@ let availableBets = [];
 let currentBetIndex = 0;
 let currentBet = 1;
 let balanceText;
+let balanceIcon;
 let betButton;
 let spinButton;
 let autoSpinButton;
@@ -288,6 +289,9 @@ async function startGame() {
     color: "#ffffff",
     fontFamily: "Arial",
   });
+  balanceIcon = this.add.text(0, 0, "\uD83D\uDCB0", {
+    fontSize: "36px",
+  });
 
   betButton = this.add
     .text(0, 0, "", {
@@ -364,6 +368,7 @@ async function startGame() {
     });
 
   uiContainer = this.add.container(0, 0, [
+    balanceIcon,
     balanceText,
     autoSpinButton,
     spinButton,
@@ -607,6 +612,7 @@ function resizeUI(gameSize) {
   if (
     !spinButton ||
     !balanceText ||
+    !balanceIcon ||
     !betButton ||
     !autoSpinButton ||
     !settingsButton
@@ -627,12 +633,16 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
     const spacing =
-      Math.max(spinButton.height, autoSpinButton.height, betButton.height) / 2 +
+      Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
       margin;
     spinButton.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
     betButton.setPosition(uiX, height / 2 + spacing);
     balanceText.setPosition(uiX, margin);
+    balanceIcon.setOrigin(right ? 1 : 0, 0.5);
+    const iconOffset = balanceText.displayWidth + margin / 2;
+    const iconX = right ? uiX - iconOffset : uiX + iconOffset;
+    balanceIcon.setPosition(iconX, margin + balanceText.displayHeight / 2);
     settingsButton.setPosition(settingsX, margin);
   } else {
     const bottom = height - margin;
@@ -643,12 +653,20 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setPosition(width / 2, bottom);
-    const autoSpacing =
-      spinButton.width / 2 + margin + autoSpinButton.width / 2;
-    const betSpacing = spinButton.width / 2 + margin + betButton.width / 2;
-    autoSpinButton.setPosition(width / 2 - autoSpacing, bottom);
-    betButton.setPosition(width / 2 + betSpacing, bottom);
+    const btnWidth = Math.max(
+      spinButton.width,
+      autoSpinButton.width,
+      betButton.width,
+    );
+    const spacing = btnWidth + margin;
+    autoSpinButton.setPosition(width / 2 - spacing, bottom);
+    betButton.setPosition(width / 2 + spacing, bottom);
     balanceText.setPosition(margin, bottom);
+    balanceIcon.setOrigin(0, 1);
+    balanceIcon.setPosition(
+      balanceText.x + balanceText.displayWidth + margin / 2,
+      bottom,
+    );
     const settingsX = settings.rightHand ? margin : width - margin;
     settingsButton.setPosition(settingsX, margin);
   }
