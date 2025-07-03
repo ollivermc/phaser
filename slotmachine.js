@@ -141,28 +141,59 @@ function preload() {
 }
 
 function create() {
+  createWelcomeScreen.call(this);
+}
+
+function createWelcomeScreen() {
   const { width, height } = this.cameras.main;
-  const continueText = this.add
-    .text(width / 2, height / 2 + offset, "CONTINUE", {
-      fontSize: "32px",
+  const container = this.add.container(0, 0);
+
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x111111, 0.9)
+    .setOrigin(0.5);
+
+  const title = this.add
+    .text(width / 2, height / 2 - 150, "SKATE SLOTS", {
+      fontSize: "64px",
       color: "#ffffff",
-      backgroundColor: "#222222",
+      fontFamily: "Arial Black",
+    })
+    .setOrigin(0.5);
+
+  const board = this.add
+    .image(width / 2, height / 2 + 30, "skateboard")
+    .setScale(0.6)
+    .setOrigin(0.5);
+
+  const startButton = this.add
+    .text(width / 2, height - 100, "START", {
+      fontSize: "48px",
+      color: "#ffffff",
+      backgroundColor: "#444",
       padding: { x: 10, y: 5 },
     })
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true });
 
-  // Get actual width and height after padding
-  const paddedWidth = continueText.width;
-  const paddedHeight = continueText.height;
+  const symbols = ["helmet", "shoe", "can", "badge"];
+  symbols.forEach((key, idx) => {
+    const angle = (Math.PI * 2 * idx) / symbols.length;
+    const radius = 220;
+    const x = width / 2 + Math.cos(angle) * radius;
+    const y = height / 2 + Math.sin(angle) * radius;
+    const sprite = this.add.image(x, y, key).setScale(0.4);
+    container.add(sprite);
+  });
 
-  continueText.on("pointerdown", () => {
+  startButton.on("pointerdown", () => {
     if (logoImage) {
       logoImage.destroy();
     }
-    continueText.destroy();
+    container.destroy(true);
     startGame.call(this);
   });
+
+  container.add([bg, title, board, startButton]);
 }
 
 async function startGame() {
