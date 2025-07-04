@@ -308,7 +308,7 @@ async function startGame() {
 
   spinButton = this.add
     .image(0, 0, "spin")
-    .setScale(0.5)
+    .setScale(0.15)
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -620,7 +620,7 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
-    spinButton.setScale(0.4);
+    spinButton.setScale(0.1);
     autoSpinButton.setFontSize(28);
     betButton.setFontSize(28);
     balanceText.setFontSize(28);
@@ -641,7 +641,7 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
-    spinButton.setScale(0.6);
+    spinButton.setScale(0.15);
     autoSpinButton.setFontSize(40);
     betButton.setFontSize(40);
     balanceText.setFontSize(40);
