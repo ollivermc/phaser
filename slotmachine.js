@@ -68,6 +68,25 @@ let currentScreen = [];
 let uiContainer;
 let logoImage;
 const game = new Phaser.Game(config);
+
+function resizeGame() {
+  const container = document.getElementById("canvas-container");
+  if (container) {
+    container.style.width = window.innerWidth + "px";
+    container.style.height = window.innerHeight + "px";
+  }
+  if (game && game.scale) {
+    game.scale.resize(window.innerWidth, window.innerHeight);
+  }
+}
+
+window.addEventListener("resize", resizeGame);
+window.addEventListener("orientationchange", () => {
+  setTimeout(resizeGame, 100);
+});
+
+resizeGame();
+
 let balance;
 let currency;
 let lastResult = null;
