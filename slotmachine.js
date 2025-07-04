@@ -1018,15 +1018,24 @@ function openInfo() {
   panel.add(title);
 
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+  const margin = 40;
   const entries = Object.keys(paytable);
+  const cols = 2;
+  const rowsCount = Math.ceil(entries.length / cols);
+  const cellWidth = (panelWidth - margin * 2) / cols;
+  const cellHeight = (panelHeight - margin * 2 - 100) / rowsCount;
   entries.forEach((key, idx) => {
-    const row = Math.floor(idx / 2);
-    const col = idx % 2;
-    const x = -panelWidth / 2 + 60 + col * (panelWidth / 2);
-    const y = -panelHeight / 2 + 70 + row * 60;
-    const img = this.add.image(x - 20, y, symbolTextures[parseInt(key, 10)]).setScale(0.4);
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const x = -panelWidth / 2 + margin + cellWidth * col + cellWidth / 2;
+    const y = -panelHeight / 2 + margin + 60 + cellHeight * row;
+    const img = this.add
+      .image(x - cellWidth / 4, y, symbolTextures[parseInt(key, 10)])
+      .setScale(0.4);
     const payout = paytable[key][2];
-    const text = this.add.text(x + 10, y, `x${payout}`, style).setOrigin(0, 0.5);
+    const text = this.add
+      .text(x + cellWidth / 4, y, `x${payout}`, style)
+      .setOrigin(0, 0.5);
     panel.add(img);
     panel.add(text);
   });
