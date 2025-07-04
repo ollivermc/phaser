@@ -16,10 +16,15 @@ const config = {
   },
 };
 
+// Base dimensions used for scaling UI elements
+const BASE_WIDTH = 800;
+const BASE_HEIGHT = 600;
 const REEL_WIDTH = 200;
+const SYMBOL_SPACING = 200;
+let scaledReelWidth = REEL_WIDTH;
+let scaledSymbolSpacing = SYMBOL_SPACING;
 let startX = 200;
 let centerY = 300;
-const SYMBOL_SPACING = 200;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
 
@@ -282,10 +287,10 @@ async function startGame() {
       order: [],
       index: 0,
     };
-    const x = startX + c * REEL_WIDTH;
+    const x = startX + c * scaledReelWidth;
     for (let r = 0; r < rows; r++) {
       const id = currentScreen[r][c];
-      const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      const y = centerY + (r - (rows - 1) / 2) * scaledSymbolSpacing;
       const sprite = this.add.sprite(x, y, symbolTextures[parseInt(id, 10)]);
       sprite.setScale(spriteScale);
       reel.sprites.push(sprite);
@@ -475,7 +480,7 @@ async function spin(result) {
     const travel = SPIN_SPEED * constantTime + 0.5 * SPIN_SPEED * decelTime;
     const loops = Math.max(
       lastCol.length + finalCol.length,
-      Math.round(travel / (SYMBOL_SPACING * rows)),
+      Math.round(travel / (scaledSymbolSpacing * rows)),
     );
     const randomCount = Math.max(0, loops - lastCol.length - finalCol.length);
     const randomSymbols = Phaser.Utils.Array.Shuffle([...baseReels[c]]).slice(
@@ -509,8 +514,8 @@ function update(time, delta) {
     anySpinning = true;
     for (const sprite of reel.sprites) {
       sprite.y += reel.speed * (delta / 1000);
-      if (sprite.y >= centerY + SYMBOL_SPACING) {
-        sprite.y -= SYMBOL_SPACING * reel.sprites.length;
+      if (sprite.y >= centerY + scaledSymbolSpacing) {
+        sprite.y -= scaledSymbolSpacing * reel.sprites.length;
         const nextId = reel.order[reel.index % reel.order.length];
         reel.index++;
         sprite.setTexture(symbolTextures[parseInt(nextId, 10)]);
@@ -560,7 +565,7 @@ function alignReel(reel, col) {
   reel.sprites.sort((a, b) => a.y - b.y);
   for (let i = 0; i < reel.sprites.length; i++) {
     const sprite = reel.sprites[i];
-    const targetY = centerY - SYMBOL_SPACING + i * SYMBOL_SPACING;
+    const targetY = centerY - scaledSymbolSpacing + i * scaledSymbolSpacing;
     this.tweens.add({
       targets: sprite,
       y: targetY,
@@ -600,8 +605,8 @@ function highlightWin(outcome, features) {
           winLine.beginPath();
           for (let c = 0; c < line.length; c++) {
             const row = line[c];
-            const x = startX + c * REEL_WIDTH;
-            const y = centerY + (row - (rows - 1) / 2) * SYMBOL_SPACING;
+            const x = startX + c * scaledReelWidth;
+            const y = centerY + (row - (rows - 1) / 2) * scaledSymbolSpacing;
             if (c === 0) {
               winLine.moveTo(x, y);
             } else {
@@ -640,6 +645,7 @@ function resizeUI(gameSize) {
   const width = gameSize.width;
   const height = gameSize.height;
   const margin = 20;
+  const scaleFactor = Math.min(width / BASE_WIDTH, height / BASE_HEIGHT);
   if (width > height) {
     const right = settings.rightHand;
     const uiX = right ? width - margin : margin;
@@ -650,10 +656,10 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
 
-    spinButton.setFontSize(48);
-    autoSpinButton.setFontSize(28);
-    betButton.setFontSize(28);
-    balanceText.setFontSize(28);
+    spinButton.setFontSize(48 * scaleFactor);
+    autoSpinButton.setFontSize(28 * scaleFactor);
+    betButton.setFontSize(28 * scaleFactor);
+    balanceText.setFontSize(28 * scaleFactor);
 
     const spacing =
       Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
@@ -671,10 +677,10 @@ function resizeUI(gameSize) {
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
-    spinButton.setFontSize(72);
-    autoSpinButton.setFontSize(40);
-    betButton.setFontSize(40);
-    balanceText.setFontSize(40);
+    spinButton.setFontSize(72 * scaleFactor);
+    autoSpinButton.setFontSize(40 * scaleFactor);
+    betButton.setFontSize(40 * scaleFactor);
+    balanceText.setFontSize(40 * scaleFactor);
 
     const quarter = width / 4;
     spinButton.setPosition(quarter * 2, bottom);
@@ -694,9 +700,12 @@ function layoutGame(gameSize) {
   const width = gameSize.width;
   const height = gameSize.height;
   const margin = 20;
+  const scaleFactor = Math.min(width / BASE_WIDTH, height / BASE_HEIGHT);
+  scaledReelWidth = REEL_WIDTH * scaleFactor;
+  scaledSymbolSpacing = SYMBOL_SPACING * scaleFactor;
   if (width > height) {
     // landscape - leave room for UI on side
-    spriteScale = 0.25;
+    spriteScale = 0.25 * scaleFactor;
     const uiWidth =
       Math.max(
         spinButton.width,
@@ -708,28 +717,28 @@ function layoutGame(gameSize) {
     const availableWidth = width - uiWidth;
     centerY = height / 2;
     const offsetX = settings.rightHand ? 0 : uiWidth;
-    startX = offsetX + (availableWidth - (cols - 1) * REEL_WIDTH) / 2;
+    startX = offsetX + (availableWidth - (cols - 1) * scaledReelWidth) / 2;
   } else {
-    spriteScale = 0.3;
+    spriteScale = 0.3 * scaleFactor;
     const uiHeight = spinButton
       ? Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
         margin * 2
       : 80;
     centerY = (height - uiHeight) / 2;
-    startX = width / 2 - ((cols - 1) * REEL_WIDTH) / 2;
+    startX = width / 2 - ((cols - 1) * scaledReelWidth) / 2;
   }
   for (let c = 0; c < reels.length; c++) {
     const reel = reels[c];
-    const x = startX + c * REEL_WIDTH;
+    const x = startX + c * scaledReelWidth;
     for (let r = 0; r < reel.sprites.length; r++) {
       const sprite = reel.sprites[r];
-      const y = centerY + (r - (rows - 1) / 2) * SYMBOL_SPACING;
+      const y = centerY + (r - (rows - 1) / 2) * scaledSymbolSpacing;
       sprite.setPosition(x, y);
       sprite.setScale(spriteScale);
     }
   }
   if (winText) {
-    const reelsCenter = startX + ((cols - 1) * REEL_WIDTH) / 2;
+    const reelsCenter = startX + ((cols - 1) * scaledReelWidth) / 2;
     winText.setPosition(reelsCenter, 80);
   }
   if (winLine) {
