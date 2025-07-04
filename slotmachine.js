@@ -1031,7 +1031,7 @@ function openInfo() {
     const y = -panelHeight / 2 + margin + 60 + cellHeight * row;
     const img = this.add
       .image(x - cellWidth / 4, y, symbolTextures[parseInt(key, 10)])
-      .setScale(0.2);
+      .setScale(0.1);
     const payout = paytable[key][2];
     const text = this.add
       .text(x + cellWidth / 4, y, `x${payout}`, style)
