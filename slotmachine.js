@@ -2,8 +2,8 @@ import { init as apiInit, spin as apiSpin } from "./api.js";
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: window.innerWidth,
+  height: window.innerHeight,
   scene: {
     preload,
     create,
@@ -70,20 +70,25 @@ let logoImage;
 const game = new Phaser.Game(config);
 
 function resizeGame() {
+  const width = window.innerWidth;
+  const height = window.innerHeight;
   const container = document.getElementById("canvas-container");
   if (container) {
-    container.style.width = window.innerWidth + "px";
-    container.style.height = window.innerHeight + "px";
+    container.style.width = width + "px";
+    container.style.height = height + "px";
   }
   if (game && game.scale) {
-    game.scale.resize(window.innerWidth, window.innerHeight);
+    game.scale.resize(width, height);
+    game.scale.refresh();
   }
 }
 
-window.addEventListener("resize", resizeGame);
-window.addEventListener("orientationchange", () => {
+function handleResize() {
   setTimeout(resizeGame, 100);
-});
+}
+
+window.addEventListener("resize", handleResize);
+window.addEventListener("orientationchange", handleResize);
 
 resizeGame();
 
