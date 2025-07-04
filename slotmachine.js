@@ -670,13 +670,13 @@ function resizeUI(gameSize) {
     const right = settings.rightHand;
     const uiX = right ? width - margin : margin;
     const settingsX = right ? margin : width - margin;
-    const infoX = right ? settingsX + 50 * scaleFactor : settingsX - 50 * scaleFactor;
+    const infoX = right ? width - margin : margin;
     spinButton.setOrigin(right ? 1 : 0, 0.5);
     autoSpinButton.setOrigin(right ? 1 : 0, 0.5);
     betButton.setOrigin(right ? 1 : 0, 0.5);
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
-    infoButton.setOrigin(right ? 0 : 1, 0);
+    infoButton.setOrigin(right ? 1 : 0, 0);
 
     spinButton.setFontSize(48 * scaleFactor);
     autoSpinButton.setFontSize(28 * scaleFactor);
@@ -700,7 +700,7 @@ function resizeUI(gameSize) {
     betButton.setOrigin(0.5, 1);
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
-    infoButton.setOrigin(settings.rightHand ? 0 : 1, 0);
+    infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
 
     spinButton.setFontSize(72 * scaleFactor);
     autoSpinButton.setFontSize(40 * scaleFactor);
@@ -720,10 +720,9 @@ function resizeUI(gameSize) {
     const balanceOffset = 80;
     balanceText.setPosition(margin, bottom - balanceOffset);
     const settingsX = settings.rightHand ? margin : width - margin;
-    const infoX = settings.rightHand
-      ? settingsX + 50 * scaleFactor
-      : settingsX - 50 * scaleFactor;
+    const infoX = settings.rightHand ? width - margin : margin;
     settingsButton.setPosition(settingsX, margin);
+    infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
     infoButton.setPosition(infoX, margin);
   }
 }
@@ -1030,7 +1029,7 @@ function openInfo() {
     const x = -panelWidth / 2 + margin + cellWidth * col + cellWidth / 2;
     const y = -panelHeight / 2 + margin + 60 + cellHeight * row;
     const img = this.add
-      .image(x - cellWidth / 4, y, symbolTextures[parseInt(key, 10)])
+      .image(x - cellWidth / 6, y, symbolTextures[parseInt(key, 10)])
       .setScale(0.1);
     const payout = paytable[key][2];
     const text = this.add
