@@ -40,6 +40,9 @@ const settings = {
 let settingsButton;
 let settingsContainer;
 let bgMusic;
+let infoButton;
+let infoContainer;
+let paytable = {};
 
 const symbolTextures = [
   "skateboard",
@@ -266,6 +269,7 @@ async function startGame() {
   cols = initData.options.layout.reels;
   baseReels = initData.options.reels.main.map((col) => [...col]);
   currentScreen = initData.options.screen.map((row) => [...row]);
+  paytable = initData.options.paytable || initData.options.paytables || {};
 
   // start background music if enabled
   if (!bgMusic) {
@@ -392,12 +396,27 @@ async function startGame() {
       }
     });
 
+  infoButton = this.add
+    .text(0, 0, "\u2139", {
+      fontSize: "80px",
+      color: "#888888",
+    })
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      if (infoContainer) {
+        closeInfo.call(this);
+      } else {
+        openInfo.call(this);
+      }
+    });
+
   uiContainer = this.add.container(0, 0, [
     balanceText,
     autoSpinButton,
     spinButton,
     betButton,
     settingsButton,
+    infoButton,
   ]);
 
   updateUI();
@@ -638,7 +657,8 @@ function resizeUI(gameSize) {
     !balanceText ||
     !betButton ||
     !autoSpinButton ||
-    !settingsButton
+    !settingsButton ||
+    !infoButton
   ) {
     return;
   }
@@ -650,16 +670,19 @@ function resizeUI(gameSize) {
     const right = settings.rightHand;
     const uiX = right ? width - margin : margin;
     const settingsX = right ? margin : width - margin;
+    const infoX = right ? settingsX + 50 * scaleFactor : settingsX - 50 * scaleFactor;
     spinButton.setOrigin(right ? 1 : 0, 0.5);
     autoSpinButton.setOrigin(right ? 1 : 0, 0.5);
     betButton.setOrigin(right ? 1 : 0, 0.5);
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
+    infoButton.setOrigin(right ? 0 : 1, 0);
 
     spinButton.setFontSize(48 * scaleFactor);
     autoSpinButton.setFontSize(28 * scaleFactor);
     betButton.setFontSize(28 * scaleFactor);
     balanceText.setFontSize(28 * scaleFactor);
+    infoButton.setFontSize(48 * scaleFactor);
 
     const spacing =
       Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
@@ -669,6 +692,7 @@ function resizeUI(gameSize) {
     betButton.setPosition(uiX, height / 2 + spacing);
     balanceText.setPosition(uiX, margin);
     settingsButton.setPosition(settingsX, margin);
+    infoButton.setPosition(infoX, margin);
   } else {
     const bottom = height - margin;
     spinButton.setOrigin(0.5, 1);
@@ -676,11 +700,13 @@ function resizeUI(gameSize) {
     betButton.setOrigin(0.5, 1);
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
+    infoButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setFontSize(72 * scaleFactor);
     autoSpinButton.setFontSize(40 * scaleFactor);
     betButton.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
+    infoButton.setFontSize(72 * scaleFactor);
 
     const totalWidth =
       autoSpinButton.width + spinButton.width + betButton.width;
@@ -694,7 +720,11 @@ function resizeUI(gameSize) {
     const balanceOffset = 80;
     balanceText.setPosition(margin, bottom - balanceOffset);
     const settingsX = settings.rightHand ? margin : width - margin;
+    const infoX = settings.rightHand
+      ? settingsX + 50 * scaleFactor
+      : settingsX - 50 * scaleFactor;
     settingsButton.setPosition(settingsX, margin);
+    infoButton.setPosition(infoX, margin);
   }
 }
 
@@ -717,6 +747,8 @@ function layoutGame(gameSize) {
         autoSpinButton.width,
         betButton.width,
         balanceText.width,
+        settingsButton.width,
+        infoButton.width,
       ) +
       margin * 2;
     const availableWidth = width - uiWidth;
@@ -726,7 +758,13 @@ function layoutGame(gameSize) {
   } else {
     spriteScale = 0.3 * scaleFactor;
     const uiHeight = spinButton
-      ? Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
+      ? Math.max(
+          spinButton.height,
+          autoSpinButton.height,
+          betButton.height,
+          settingsButton.height,
+          infoButton.height,
+        ) +
         margin * 2
       : 80;
     centerY = (height - uiHeight) / 2;
@@ -946,5 +984,84 @@ function closeBetMenu() {
   if (betMenuContainer) {
     betMenuContainer.destroy(true);
     betMenuContainer = null;
+  }
+}
+
+function openInfo() {
+  if (infoContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  infoContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeInfo.call(this);
+    });
+
+  const panelWidth = 360;
+  const panelHeight = 420;
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  panel.add(panelBg);
+
+  const title = this.add
+    .text(0, -panelHeight / 2 + 30, "INFO", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
+  panel.add(title);
+
+  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+  const entries = Object.keys(paytable);
+  entries.forEach((key, idx) => {
+    const row = Math.floor(idx / 2);
+    const col = idx % 2;
+    const x = -panelWidth / 2 + 60 + col * (panelWidth / 2);
+    const y = -panelHeight / 2 + 70 + row * 60;
+    const img = this.add.image(x - 20, y, symbolTextures[parseInt(key, 10)]).setScale(0.4);
+    const payout = paytable[key][2];
+    const text = this.add.text(x + 10, y, `x${payout}`, style).setOrigin(0, 0.5);
+    panel.add(img);
+    panel.add(text);
+  });
+
+  const infoText = this.add
+    .text(0, panelHeight / 2 - 80, "Match 3 symbols on a line to win.", {
+      fontSize: "20px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+      align: "center",
+      wordWrap: { width: panelWidth - 40 },
+    })
+    .setOrigin(0.5);
+  panel.add(infoText);
+
+  const closeBtn = this.add
+    .text(0, panelHeight / 2 - 30, "Close", {
+      fontSize: "28px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      closeInfo.call(this);
+    });
+  panel.add(closeBtn);
+
+  infoContainer.add([bg, panel]);
+}
+
+function closeInfo() {
+  if (infoContainer) {
+    infoContainer.destroy(true);
+    infoContainer = null;
   }
 }
