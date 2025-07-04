@@ -682,10 +682,15 @@ function resizeUI(gameSize) {
     betButton.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
 
-    const quarter = width / 4;
-    spinButton.setPosition(quarter * 2, bottom);
-    autoSpinButton.setPosition(quarter, bottom);
-    betButton.setPosition(quarter * 3, bottom);
+    const totalWidth =
+      autoSpinButton.width + spinButton.width + betButton.width;
+    const gap = (width - 2 * margin - totalWidth) / 4;
+    let x = margin + gap + autoSpinButton.width / 2;
+    autoSpinButton.setPosition(x, bottom);
+    x += autoSpinButton.width / 2 + gap + spinButton.width / 2;
+    spinButton.setPosition(x, bottom);
+    x += spinButton.width / 2 + gap + betButton.width / 2;
+    betButton.setPosition(x, bottom);
     const balanceOffset = 80;
     balanceText.setPosition(margin, bottom - balanceOffset);
     const settingsX = settings.rightHand ? margin : width - margin;
