@@ -241,7 +241,7 @@ function createWelcomeScreen() {
     const radius = 220;
     const x = width / 2 + Math.cos(angle) * radius;
     const y = height / 2 + Math.sin(angle) * radius;
-    const sprite = this.add.image(x, y, key).setScale(0.4);
+    const sprite = this.add.image(x, y, key).setScale(0.2);
     container.add(sprite);
   });
 
@@ -1031,7 +1031,7 @@ function openInfo() {
     const y = -panelHeight / 2 + margin + 60 + cellHeight * row;
     const img = this.add
       .image(x - cellWidth / 4, y, symbolTextures[parseInt(key, 10)])
-      .setScale(0.4);
+      .setScale(0.2);
     const payout = paytable[key][2];
     const text = this.add
       .text(x + cellWidth / 4, y, `x${payout}`, style)
