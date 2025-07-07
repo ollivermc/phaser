@@ -90,6 +90,8 @@ let betButton;
 let spinButton;
 let autoSpinButton;
 let autoSpin = false;
+let autoSpinCount = 0;
+let autoSpinMenuContainer;
 let betMenuContainer;
 
 let finalScreen = null;
@@ -398,10 +400,10 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      autoSpin = !autoSpin;
-      updateAutoSpinButton();
-      if (autoSpin && !isSpinning) {
-        startSpin(this);
+      if (autoSpinMenuContainer) {
+        closeAutoSpinMenu.call(this);
+      } else {
+        openAutoSpinMenu.call(this);
       }
     });
   updateAutoSpinButton();
@@ -462,7 +464,13 @@ function updateUI() {
 
 function updateAutoSpinButton() {
   if (autoSpinButton) {
-    autoSpinButton.setText(`AUTO ${autoSpin ? "ON" : "OFF"}`);
+    if (autoSpin && autoSpinCount !== 0) {
+      const label =
+        autoSpinCount === Infinity ? "∞" : `${autoSpinCount}`;
+      autoSpinButton.setText(`AUTO ${label}`);
+    } else {
+      autoSpinButton.setText("AUTO OFF");
+    }
   }
 }
 
@@ -591,12 +599,21 @@ function update(time, delta) {
     }
     updateUI();
     lastResult = null;
-    if (autoSpin) {
-      this.time.delayedCall(500, () => {
-        if (autoSpin && !isSpinning) {
-          startSpin(this);
-        }
-      });
+    if (autoSpin && autoSpinCount !== 0) {
+      if (autoSpinCount !== Infinity) {
+        autoSpinCount--;
+      }
+      if (autoSpinCount === 0) {
+        autoSpin = false;
+        updateAutoSpinButton();
+      } else {
+        updateAutoSpinButton();
+        this.time.delayedCall(500, () => {
+          if (autoSpin && !isSpinning) {
+            startSpin(this);
+          }
+        });
+      }
     }
   }
 }
@@ -1013,6 +1030,73 @@ function closeBetMenu() {
   if (betMenuContainer) {
     betMenuContainer.destroy(true);
     betMenuContainer = null;
+  }
+}
+
+function openAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  autoSpinMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeAutoSpinMenu.call(this);
+    });
+
+  const options = [5, 20, 25, 50, 100, 200, 300, 400, 500, 1000, "∞"];
+  const cols = 3;
+  const spacing = 10;
+  const buttonWidth = 90;
+  const buttonHeight = 40;
+  const rowsCount = Math.ceil(options.length / cols);
+  const panelWidth = cols * buttonWidth + (cols - 1) * spacing + spacing * 2;
+  const panelHeight = rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
+
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  panel.add(panelBg);
+
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    backgroundColor: "#444",
+    padding: { x: 10, y: 5 },
+    fontFamily: "Arial",
+  };
+
+  options.forEach((opt, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const x = -panelWidth / 2 + spacing + col * (buttonWidth + spacing) + buttonWidth / 2;
+    const y = -panelHeight / 2 + spacing + row * (buttonHeight + spacing) + buttonHeight / 2;
+    const label = `${opt}`;
+    const text = this.add
+      .text(x, y, label, style)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        autoSpinCount = opt === "∞" ? Infinity : parseInt(opt, 10);
+        autoSpin = true;
+        updateAutoSpinButton();
+        closeAutoSpinMenu.call(this);
+        if (!isSpinning) {
+          startSpin(this);
+        }
+      });
+    panel.add(text);
+  });
+  autoSpinMenuContainer.add([bg, panel]);
+}
+
+function closeAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    autoSpinMenuContainer.destroy(true);
+    autoSpinMenuContainer = null;
   }
 }
 
