@@ -14,6 +14,10 @@ const config = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
     parent: "canvas-container", // match your DOM
   },
+  dom: {
+    createContainer: true,
+    pointerEvents: 'auto',
+  },
 };
 
 // Base dimensions used for scaling UI elements
@@ -90,7 +94,18 @@ let betButton;
 let spinButton;
 let autoSpinButton;
 let autoSpin = false;
+let autoSpinCount = 0;
+let autoSpinMenuContainer;
 let betMenuContainer;
+let autoSpinAdvancedMenuContainer;
+let autoStopOnAnyWin = false;
+let autoStopWinExceeds = 0;
+let autoStopBalanceIncrease = 0;
+let autoStopBalanceDecrease = 0;
+let autoStopWinExceedsEnabled = false;
+let autoStopBalanceIncreaseEnabled = false;
+let autoStopBalanceDecreaseEnabled = false;
+let autoSpinStartBalance = 0;
 
 let finalScreen = null;
 let rows = 0;
@@ -375,7 +390,14 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      startSpin(this);
+      if (autoSpin && autoSpinCount !== 0) {
+        autoSpin = false;
+        autoSpinCount = 0;
+        updateAutoSpinButton();
+        updateSpinButton();
+      } else {
+        startSpin(this);
+      }
     })
     .on("pointerup", () => {
       if (!isSpinning) {
@@ -398,13 +420,14 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      autoSpin = !autoSpin;
-      updateAutoSpinButton();
-      if (autoSpin && !isSpinning) {
-        startSpin(this);
+      if (autoSpinMenuContainer) {
+        closeAutoSpinMenu.call(this);
+      } else {
+        openAutoSpinMenu.call(this);
       }
     });
   updateAutoSpinButton();
+  updateSpinButton();
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
@@ -462,7 +485,19 @@ function updateUI() {
 
 function updateAutoSpinButton() {
   if (autoSpinButton) {
-    autoSpinButton.setText(`AUTO ${autoSpin ? "ON" : "OFF"}`);
+    if (autoSpin && autoSpinCount !== 0) {
+      const label =
+        autoSpinCount === Infinity ? "∞" : `${autoSpinCount}`;
+      autoSpinButton.setText(`AUTO ${label}`);
+    } else {
+      autoSpinButton.setText("AUTO OFF");
+    }
+  }
+}
+
+function updateSpinButton() {
+  if (spinButton) {
+    spinButton.setText(autoSpin ? "STOP" : "SPIN");
   }
 }
 
@@ -471,8 +506,12 @@ function startSpin(scene) {
     return;
   }
   if (spinButton) {
-    spinButton.disableInteractive();
-    spinButton.setAlpha(0.5);
+    if (!autoSpin) {
+      spinButton.disableInteractive();
+      spinButton.setAlpha(0.5);
+    } else {
+      spinButton.setAlpha(1);
+    }
   }
   apiSpin(currentBet).then((result) => spin.call(scene, result));
 }
@@ -498,8 +537,12 @@ async function spin(result) {
   }
   isSpinning = true;
   if (spinButton) {
-    spinButton.disableInteractive();
-    spinButton.setAlpha(0.5);
+    if (!autoSpin) {
+      spinButton.disableInteractive();
+      spinButton.setAlpha(0.5);
+    } else {
+      spinButton.setAlpha(1);
+    }
   }
 
   // correct screen columns vs rows
@@ -589,14 +632,61 @@ function update(time, delta) {
     } else {
       clearWin();
     }
+    const winAmountCheck = lastResult ? lastResult.outcome.win : 0;
     updateUI();
     lastResult = null;
-    if (autoSpin) {
-      this.time.delayedCall(500, () => {
-        if (autoSpin && !isSpinning) {
-          startSpin(this);
+    if (autoSpin && autoSpinCount !== 0) {
+      const winAmount = winAmountCheck;
+      const bal = Number(balance);
+      let stop = false;
+      if (autoStopOnAnyWin && winAmount > 0) {
+        stop = true;
+      }
+      if (
+        !stop &&
+        autoStopWinExceedsEnabled &&
+        autoStopWinExceeds > 0 &&
+        winAmount >= autoStopWinExceeds
+      ) {
+        stop = true;
+      }
+      if (
+        !stop &&
+        autoStopBalanceIncreaseEnabled &&
+        autoStopBalanceIncrease > 0 &&
+        bal - autoSpinStartBalance >= autoStopBalanceIncrease
+      ) {
+        stop = true;
+      }
+      if (
+        !stop &&
+        autoStopBalanceDecreaseEnabled &&
+        autoStopBalanceDecrease > 0 &&
+        autoSpinStartBalance - bal >= autoStopBalanceDecrease
+      ) {
+        stop = true;
+      }
+      if (!stop) {
+        if (autoSpinCount !== Infinity) {
+          autoSpinCount--;
         }
-      });
+        if (autoSpinCount === 0) {
+          stop = true;
+        }
+      }
+      if (stop) {
+        autoSpin = false;
+        autoSpinCount = 0;
+        updateAutoSpinButton();
+        updateSpinButton();
+      } else {
+        updateAutoSpinButton();
+        this.time.delayedCall(500, () => {
+          if (autoSpin && !isSpinning) {
+            startSpin(this);
+          }
+        });
+      }
     }
   }
 }
@@ -1013,6 +1103,215 @@ function closeBetMenu() {
   if (betMenuContainer) {
     betMenuContainer.destroy(true);
     betMenuContainer = null;
+  }
+}
+
+function openAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  autoSpinMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeAutoSpinMenu.call(this);
+    });
+
+  const options = [5, 20, 25, 50, 100, 200, 300, 400, 500, 1000, "∞"];
+  const cols = 3;
+  const spacing = 10;
+  const buttonWidth = 90;
+  const buttonHeight = 40;
+  const rowsCount = Math.ceil(options.length / cols);
+  const panelWidth = cols * buttonWidth + (cols - 1) * spacing + spacing * 2;
+  const advHeight = 40;
+  const panelHeight =
+    rowsCount * buttonHeight +
+    (rowsCount - 1) * spacing +
+    spacing * 3 +
+    advHeight;
+
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  panel.add(panelBg);
+
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    backgroundColor: "#444",
+    padding: { x: 10, y: 5 },
+    fontFamily: "Arial",
+  };
+
+  options.forEach((opt, idx) => {
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    const x = -panelWidth / 2 + spacing + col * (buttonWidth + spacing) + buttonWidth / 2;
+    const y = -panelHeight / 2 + spacing + row * (buttonHeight + spacing) + buttonHeight / 2;
+    const label = `${opt}`;
+    const text = this.add
+      .text(x, y, label, style)
+      .setOrigin(0.5)
+      .setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        autoSpinCount = opt === "∞" ? Infinity : parseInt(opt, 10);
+        autoSpin = true;
+        autoSpinStartBalance = Number(balance);
+        updateAutoSpinButton();
+        updateSpinButton();
+        closeAutoSpinMenu.call(this);
+        if (!isSpinning) {
+          startSpin(this);
+        }
+      });
+    panel.add(text);
+  });
+
+  const advButton = this.add
+    .text(0, panelHeight / 2 - advHeight / 2 - spacing, "Advanced", style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      closeAutoSpinMenu.call(this);
+      openAutoSpinAdvancedMenu.call(this);
+    });
+  panel.add(advButton);
+  autoSpinMenuContainer.add([bg, panel]);
+}
+
+function closeAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    autoSpinMenuContainer.destroy(true);
+    autoSpinMenuContainer = null;
+  }
+  if (autoSpinAdvancedMenuContainer) {
+    closeAutoSpinAdvancedMenu.call(this);
+  }
+}
+
+function openAutoSpinAdvancedMenu() {
+  if (autoSpinAdvancedMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  autoSpinAdvancedMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeAutoSpinAdvancedMenu.call(this);
+    });
+
+  const panelWidth = 360;
+  const panelHeight = 260;
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  panel.add(panelBg);
+  const blocker = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0)
+    .setOrigin(0.5)
+    .setInteractive()
+    .on("pointerdown", (pointer, lx, ly, event) => {
+      event.stopPropagation();
+    });
+  panel.add(blocker);
+
+  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+
+  const checkX = -panelWidth / 2 + 20;
+  const labelX = checkX + 30;
+  const inputX = panelWidth / 2 - 60;
+
+  const anyWinCheck = this.add
+    .dom(checkX, -90, "input")
+    .setOrigin(0, 0.5);
+  anyWinCheck.node.type = "checkbox";
+  anyWinCheck.node.checked = autoStopOnAnyWin;
+  const anyWinLabel = this.add
+    .text(labelX, -90, "Stop on any win", style)
+    .setOrigin(0, 0.5);
+  panel.add([anyWinCheck, anyWinLabel]);
+
+  const winCheck = this.add
+    .dom(checkX, -40, "input")
+    .setOrigin(0, 0.5);
+  winCheck.node.type = "checkbox";
+  winCheck.node.checked = autoStopWinExceedsEnabled;
+  const winLabel = this.add
+    .text(labelX, -40, "Win exceeds", style)
+    .setOrigin(0, 0.5);
+  const winInput = this.add
+    .dom(inputX, -40, "input", "width: 100px")
+    .setOrigin(0.5);
+  winInput.node.type = "number";
+  winInput.node.value = autoStopWinExceeds || "";
+  panel.add([winCheck, winLabel, winInput]);
+
+  const incCheck = this.add
+    .dom(checkX, 10, "input")
+    .setOrigin(0, 0.5);
+  incCheck.node.type = "checkbox";
+  incCheck.node.checked = autoStopBalanceIncreaseEnabled;
+  const incLabel = this.add
+    .text(labelX, 10, "Balance +", style)
+    .setOrigin(0, 0.5);
+  const incInput = this.add
+    .dom(inputX, 10, "input", "width: 100px")
+    .setOrigin(0.5);
+  incInput.node.type = "number";
+  incInput.node.value = autoStopBalanceIncrease || "";
+  panel.add([incCheck, incLabel, incInput]);
+
+  const decCheck = this.add
+    .dom(checkX, 60, "input")
+    .setOrigin(0, 0.5);
+  decCheck.node.type = "checkbox";
+  decCheck.node.checked = autoStopBalanceDecreaseEnabled;
+  const decLabel = this.add
+    .text(labelX, 60, "Balance -", style)
+    .setOrigin(0, 0.5);
+  const decInput = this.add
+    .dom(inputX, 60, "input", "width: 100px")
+    .setOrigin(0.5);
+  decInput.node.type = "number";
+  decInput.node.value = autoStopBalanceDecrease || "";
+  panel.add([decCheck, decLabel, decInput]);
+
+  const okButton = this.add
+    .text(0, panelHeight / 2 - 30, "OK", {
+      fontSize: "24px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      autoStopOnAnyWin = anyWinCheck.node.checked;
+      autoStopWinExceedsEnabled = winCheck.node.checked;
+      autoStopBalanceIncreaseEnabled = incCheck.node.checked;
+      autoStopBalanceDecreaseEnabled = decCheck.node.checked;
+      autoStopWinExceeds = parseFloat(winInput.node.value) || 0;
+      autoStopBalanceIncrease = parseFloat(incInput.node.value) || 0;
+      autoStopBalanceDecrease = parseFloat(decInput.node.value) || 0;
+      closeAutoSpinAdvancedMenu.call(this);
+    });
+  panel.add(okButton);
+
+  autoSpinAdvancedMenuContainer.add([bg, panel]);
+}
+
+function closeAutoSpinAdvancedMenu() {
+  if (autoSpinAdvancedMenuContainer) {
+    autoSpinAdvancedMenuContainer.destroy(true);
+    autoSpinAdvancedMenuContainer = null;
   }
 }
 
