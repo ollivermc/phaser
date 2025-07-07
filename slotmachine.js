@@ -101,6 +101,9 @@ let autoStopOnAnyWin = false;
 let autoStopWinExceeds = 0;
 let autoStopBalanceIncrease = 0;
 let autoStopBalanceDecrease = 0;
+let autoStopWinExceedsEnabled = false;
+let autoStopBalanceIncreaseEnabled = false;
+let autoStopBalanceDecreaseEnabled = false;
 let autoSpinStartBalance = 0;
 
 let finalScreen = null;
@@ -628,20 +631,27 @@ function update(time, delta) {
     } else {
       clearWin();
     }
+    const winAmountCheck = lastResult ? lastResult.outcome.win : 0;
     updateUI();
     lastResult = null;
     if (autoSpin && autoSpinCount !== 0) {
-      const winAmount = lastResult ? lastResult.outcome.win : 0;
+      const winAmount = winAmountCheck;
       const bal = Number(balance);
       let stop = false;
       if (autoStopOnAnyWin && winAmount > 0) {
         stop = true;
       }
-      if (!stop && autoStopWinExceeds > 0 && winAmount >= autoStopWinExceeds) {
+      if (
+        !stop &&
+        autoStopWinExceedsEnabled &&
+        autoStopWinExceeds > 0 &&
+        winAmount >= autoStopWinExceeds
+      ) {
         stop = true;
       }
       if (
         !stop &&
+        autoStopBalanceIncreaseEnabled &&
         autoStopBalanceIncrease > 0 &&
         bal - autoSpinStartBalance >= autoStopBalanceIncrease
       ) {
@@ -649,6 +659,7 @@ function update(time, delta) {
       }
       if (
         !stop &&
+        autoStopBalanceDecreaseEnabled &&
         autoStopBalanceDecrease > 0 &&
         autoSpinStartBalance - bal >= autoStopBalanceDecrease
       ) {
@@ -1204,42 +1215,64 @@ function openAutoSpinAdvancedMenu() {
 
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
 
-  const winToggle = this.add
-    .text(0, -90, `Stop on any win: ${autoStopOnAnyWin ? "ON" : "OFF"}`, style)
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      autoStopOnAnyWin = !autoStopOnAnyWin;
-      winToggle.setText(`Stop on any win: ${autoStopOnAnyWin ? "ON" : "OFF"}`);
-    });
-  panel.add(winToggle);
+  const checkX = -panelWidth / 2 + 20;
+  const labelX = checkX + 30;
+  const inputX = panelWidth / 2 - 60;
 
-  const winLabel = this.add.text(-panelWidth / 2 + 20, -40, "Win exceeds", style).setOrigin(0, 0.5);
+  const anyWinCheck = this.add
+    .dom(checkX, -90, "input")
+    .setOrigin(0, 0.5);
+  anyWinCheck.node.type = "checkbox";
+  anyWinCheck.node.checked = autoStopOnAnyWin;
+  const anyWinLabel = this.add
+    .text(labelX, -90, "Stop on any win", style)
+    .setOrigin(0, 0.5);
+  panel.add([anyWinCheck, anyWinLabel]);
+
+  const winCheck = this.add
+    .dom(checkX, -40, "input")
+    .setOrigin(0, 0.5);
+  winCheck.node.type = "checkbox";
+  winCheck.node.checked = autoStopWinExceedsEnabled;
+  const winLabel = this.add
+    .text(labelX, -40, "Win exceeds", style)
+    .setOrigin(0, 0.5);
   const winInput = this.add
-    .dom(panelWidth / 2 - 60, -40, "input", "width: 100px")
+    .dom(inputX, -40, "input", "width: 100px")
     .setOrigin(0.5);
   winInput.node.type = "number";
   winInput.node.value = autoStopWinExceeds || "";
-  panel.add(winLabel);
-  panel.add(winInput);
+  panel.add([winCheck, winLabel, winInput]);
 
-  const incLabel = this.add.text(-panelWidth / 2 + 20, 10, "Balance +", style).setOrigin(0, 0.5);
+  const incCheck = this.add
+    .dom(checkX, 10, "input")
+    .setOrigin(0, 0.5);
+  incCheck.node.type = "checkbox";
+  incCheck.node.checked = autoStopBalanceIncreaseEnabled;
+  const incLabel = this.add
+    .text(labelX, 10, "Balance +", style)
+    .setOrigin(0, 0.5);
   const incInput = this.add
-    .dom(panelWidth / 2 - 60, 10, "input", "width: 100px")
+    .dom(inputX, 10, "input", "width: 100px")
     .setOrigin(0.5);
   incInput.node.type = "number";
   incInput.node.value = autoStopBalanceIncrease || "";
-  panel.add(incLabel);
-  panel.add(incInput);
+  panel.add([incCheck, incLabel, incInput]);
 
-  const decLabel = this.add.text(-panelWidth / 2 + 20, 60, "Balance -", style).setOrigin(0, 0.5);
+  const decCheck = this.add
+    .dom(checkX, 60, "input")
+    .setOrigin(0, 0.5);
+  decCheck.node.type = "checkbox";
+  decCheck.node.checked = autoStopBalanceDecreaseEnabled;
+  const decLabel = this.add
+    .text(labelX, 60, "Balance -", style)
+    .setOrigin(0, 0.5);
   const decInput = this.add
-    .dom(panelWidth / 2 - 60, 60, "input", "width: 100px")
+    .dom(inputX, 60, "input", "width: 100px")
     .setOrigin(0.5);
   decInput.node.type = "number";
   decInput.node.value = autoStopBalanceDecrease || "";
-  panel.add(decLabel);
-  panel.add(decInput);
+  panel.add([decCheck, decLabel, decInput]);
 
   const okButton = this.add
     .text(0, panelHeight / 2 - 30, "OK", {
@@ -1252,6 +1285,10 @@ function openAutoSpinAdvancedMenu() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
+      autoStopOnAnyWin = anyWinCheck.node.checked;
+      autoStopWinExceedsEnabled = winCheck.node.checked;
+      autoStopBalanceIncreaseEnabled = incCheck.node.checked;
+      autoStopBalanceDecreaseEnabled = decCheck.node.checked;
       autoStopWinExceeds = parseFloat(winInput.node.value) || 0;
       autoStopBalanceIncrease = parseFloat(incInput.node.value) || 0;
       autoStopBalanceDecrease = parseFloat(decInput.node.value) || 0;
