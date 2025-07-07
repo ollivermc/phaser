@@ -37,6 +37,30 @@ const settings = {
   volume: 1,
 };
 
+const SETTINGS_KEY = "slotmachine_settings";
+
+function loadSettings() {
+  try {
+    const data = localStorage.getItem(SETTINGS_KEY);
+    if (data) {
+      const parsed = JSON.parse(data);
+      Object.assign(settings, parsed);
+    }
+  } catch (e) {
+    console.warn("Failed to load settings", e);
+  }
+}
+
+function saveSettings() {
+  try {
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  } catch (e) {
+    console.warn("Failed to save settings", e);
+  }
+}
+
+loadSettings();
+
 let settingsButton;
 let settingsContainer;
 let bgMusic;
@@ -774,6 +798,7 @@ function openSettings() {
     .on("pointerdown", () => {
       settings.quickSpin = !settings.quickSpin;
       quickText.setText(`Quick Spin: ${settings.quickSpin ? "ON" : "OFF"}`);
+      saveSettings();
     });
 
   const handText = this.add
@@ -783,6 +808,7 @@ function openSettings() {
     .on("pointerdown", () => {
       settings.rightHand = !settings.rightHand;
       handText.setText(`Hand: ${settings.rightHand ? "RIGHT" : "LEFT"}`);
+      saveSettings();
       resizeUI.call(this, this.scale.gameSize);
       layoutGame.call(this, this.scale.gameSize);
     });
@@ -799,6 +825,7 @@ function openSettings() {
       } else {
         bgMusic.stop();
       }
+      saveSettings();
     });
 
   const soundText = this.add
@@ -808,6 +835,7 @@ function openSettings() {
     .on("pointerdown", () => {
       settings.sound = !settings.sound;
       soundText.setText(`Sound FX: ${settings.sound ? "ON" : "OFF"}`);
+      saveSettings();
     });
 
   const volumeText = this.add
@@ -827,6 +855,7 @@ function openSettings() {
         bgMusic.setVolume(settings.volume);
       }
       volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
+      saveSettings();
     });
   const volUp = this.add
     .text(40, 140, "+", style)
@@ -842,6 +871,7 @@ function openSettings() {
         bgMusic.setVolume(settings.volume);
       }
       volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
+      saveSettings();
     });
 
   const closeBtn = this.add
