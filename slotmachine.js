@@ -14,6 +14,9 @@ const config = {
     autoCenter: Phaser.Scale.CENTER_BOTH,
     parent: "canvas-container", // match your DOM
   },
+  dom: {
+    createContainer: true,
+  },
 };
 
 // Base dimensions used for scaling UI elements
@@ -93,6 +96,12 @@ let autoSpin = false;
 let autoSpinCount = 0;
 let autoSpinMenuContainer;
 let betMenuContainer;
+let autoSpinAdvancedMenuContainer;
+let autoStopOnAnyWin = false;
+let autoStopWinExceeds = 0;
+let autoStopBalanceIncrease = 0;
+let autoStopBalanceDecrease = 0;
+let autoSpinStartBalance = 0;
 
 let finalScreen = null;
 let rows = 0;
@@ -622,11 +631,40 @@ function update(time, delta) {
     updateUI();
     lastResult = null;
     if (autoSpin && autoSpinCount !== 0) {
-      if (autoSpinCount !== Infinity) {
-        autoSpinCount--;
+      const winAmount = lastResult ? lastResult.outcome.win : 0;
+      const bal = Number(balance);
+      let stop = false;
+      if (autoStopOnAnyWin && winAmount > 0) {
+        stop = true;
       }
-      if (autoSpinCount === 0) {
+      if (!stop && autoStopWinExceeds > 0 && winAmount >= autoStopWinExceeds) {
+        stop = true;
+      }
+      if (
+        !stop &&
+        autoStopBalanceIncrease > 0 &&
+        bal - autoSpinStartBalance >= autoStopBalanceIncrease
+      ) {
+        stop = true;
+      }
+      if (
+        !stop &&
+        autoStopBalanceDecrease > 0 &&
+        autoSpinStartBalance - bal >= autoStopBalanceDecrease
+      ) {
+        stop = true;
+      }
+      if (!stop) {
+        if (autoSpinCount !== Infinity) {
+          autoSpinCount--;
+        }
+        if (autoSpinCount === 0) {
+          stop = true;
+        }
+      }
+      if (stop) {
         autoSpin = false;
+        autoSpinCount = 0;
         updateAutoSpinButton();
         updateSpinButton();
       } else {
@@ -1076,7 +1114,12 @@ function openAutoSpinMenu() {
   const buttonHeight = 40;
   const rowsCount = Math.ceil(options.length / cols);
   const panelWidth = cols * buttonWidth + (cols - 1) * spacing + spacing * 2;
-  const panelHeight = rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
+  const advHeight = 40;
+  const panelHeight =
+    rowsCount * buttonHeight +
+    (rowsCount - 1) * spacing +
+    spacing * 3 +
+    advHeight;
 
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
@@ -1105,6 +1148,7 @@ function openAutoSpinMenu() {
       .on("pointerdown", () => {
         autoSpinCount = opt === "∞" ? Infinity : parseInt(opt, 10);
         autoSpin = true;
+        autoSpinStartBalance = Number(balance);
         updateAutoSpinButton();
         updateSpinButton();
         closeAutoSpinMenu.call(this);
@@ -1114,6 +1158,16 @@ function openAutoSpinMenu() {
       });
     panel.add(text);
   });
+
+  const advButton = this.add
+    .text(0, panelHeight / 2 - advHeight / 2 - spacing, "Advanced", style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      closeAutoSpinMenu.call(this);
+      openAutoSpinAdvancedMenu.call(this);
+    });
+  panel.add(advButton);
   autoSpinMenuContainer.add([bg, panel]);
 }
 
@@ -1121,6 +1175,97 @@ function closeAutoSpinMenu() {
   if (autoSpinMenuContainer) {
     autoSpinMenuContainer.destroy(true);
     autoSpinMenuContainer = null;
+  }
+  if (autoSpinAdvancedMenuContainer) {
+    closeAutoSpinAdvancedMenu.call(this);
+  }
+}
+
+function openAutoSpinAdvancedMenu() {
+  if (autoSpinAdvancedMenuContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  autoSpinAdvancedMenuContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive()
+    .on("pointerdown", () => {
+      closeAutoSpinAdvancedMenu.call(this);
+    });
+
+  const panelWidth = 360;
+  const panelHeight = 260;
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  panel.add(panelBg);
+
+  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
+
+  const winToggle = this.add
+    .text(0, -90, `Stop on any win: ${autoStopOnAnyWin ? "ON" : "OFF"}`, style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      autoStopOnAnyWin = !autoStopOnAnyWin;
+      winToggle.setText(`Stop on any win: ${autoStopOnAnyWin ? "ON" : "OFF"}`);
+    });
+  panel.add(winToggle);
+
+  const winLabel = this.add.text(-panelWidth / 2 + 20, -40, "Win exceeds", style).setOrigin(0, 0.5);
+  const winInput = this.add
+    .dom(panelWidth / 2 - 60, -40, "input", "width: 100px")
+    .setOrigin(0.5);
+  winInput.node.type = "number";
+  winInput.node.value = autoStopWinExceeds || "";
+  panel.add(winLabel);
+  panel.add(winInput);
+
+  const incLabel = this.add.text(-panelWidth / 2 + 20, 10, "Balance +", style).setOrigin(0, 0.5);
+  const incInput = this.add
+    .dom(panelWidth / 2 - 60, 10, "input", "width: 100px")
+    .setOrigin(0.5);
+  incInput.node.type = "number";
+  incInput.node.value = autoStopBalanceIncrease || "";
+  panel.add(incLabel);
+  panel.add(incInput);
+
+  const decLabel = this.add.text(-panelWidth / 2 + 20, 60, "Balance -", style).setOrigin(0, 0.5);
+  const decInput = this.add
+    .dom(panelWidth / 2 - 60, 60, "input", "width: 100px")
+    .setOrigin(0.5);
+  decInput.node.type = "number";
+  decInput.node.value = autoStopBalanceDecrease || "";
+  panel.add(decLabel);
+  panel.add(decInput);
+
+  const okButton = this.add
+    .text(0, panelHeight / 2 - 30, "OK", {
+      fontSize: "24px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      autoStopWinExceeds = parseFloat(winInput.node.value) || 0;
+      autoStopBalanceIncrease = parseFloat(incInput.node.value) || 0;
+      autoStopBalanceDecrease = parseFloat(decInput.node.value) || 0;
+      closeAutoSpinAdvancedMenu.call(this);
+    });
+  panel.add(okButton);
+
+  autoSpinAdvancedMenuContainer.add([bg, panel]);
+}
+
+function closeAutoSpinAdvancedMenu() {
+  if (autoSpinAdvancedMenuContainer) {
+    autoSpinAdvancedMenuContainer.destroy(true);
+    autoSpinAdvancedMenuContainer = null;
   }
 }
 
