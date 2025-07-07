@@ -493,8 +493,12 @@ function startSpin(scene) {
     return;
   }
   if (spinButton) {
-    spinButton.disableInteractive();
-    spinButton.setAlpha(0.5);
+    if (!autoSpin) {
+      spinButton.disableInteractive();
+      spinButton.setAlpha(0.5);
+    } else {
+      spinButton.setAlpha(1);
+    }
   }
   apiSpin(currentBet).then((result) => spin.call(scene, result));
 }
@@ -520,8 +524,12 @@ async function spin(result) {
   }
   isSpinning = true;
   if (spinButton) {
-    spinButton.disableInteractive();
-    spinButton.setAlpha(0.5);
+    if (!autoSpin) {
+      spinButton.disableInteractive();
+      spinButton.setAlpha(0.5);
+    } else {
+      spinButton.setAlpha(1);
+    }
   }
 
   // correct screen columns vs rows
