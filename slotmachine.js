@@ -377,7 +377,14 @@ async function startGame() {
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
-      startSpin(this);
+      if (autoSpin && autoSpinCount !== 0) {
+        autoSpin = false;
+        autoSpinCount = 0;
+        updateAutoSpinButton();
+        updateSpinButton();
+      } else {
+        startSpin(this);
+      }
     })
     .on("pointerup", () => {
       if (!isSpinning) {
@@ -407,6 +414,7 @@ async function startGame() {
       }
     });
   updateAutoSpinButton();
+  updateSpinButton();
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
@@ -471,6 +479,12 @@ function updateAutoSpinButton() {
     } else {
       autoSpinButton.setText("AUTO OFF");
     }
+  }
+}
+
+function updateSpinButton() {
+  if (spinButton) {
+    spinButton.setText(autoSpin ? "STOP" : "SPIN");
   }
 }
 
@@ -606,6 +620,7 @@ function update(time, delta) {
       if (autoSpinCount === 0) {
         autoSpin = false;
         updateAutoSpinButton();
+        updateSpinButton();
       } else {
         updateAutoSpinButton();
         this.time.delayedCall(500, () => {
@@ -1083,6 +1098,7 @@ function openAutoSpinMenu() {
         autoSpinCount = opt === "∞" ? Infinity : parseInt(opt, 10);
         autoSpin = true;
         updateAutoSpinButton();
+        updateSpinButton();
         closeAutoSpinMenu.call(this);
         if (!isSpinning) {
           startSpin(this);
