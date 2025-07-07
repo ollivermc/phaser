@@ -16,6 +16,7 @@ const config = {
   },
   dom: {
     createContainer: true,
+    pointerEvents: 'auto',
   },
 };
 
@@ -1212,6 +1213,14 @@ function openAutoSpinAdvancedMenu() {
     .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
     .setOrigin(0.5);
   panel.add(panelBg);
+  const blocker = this.add
+    .rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0)
+    .setOrigin(0.5)
+    .setInteractive()
+    .on("pointerdown", (pointer, lx, ly, event) => {
+      event.stopPropagation();
+    });
+  panel.add(blocker);
 
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
 
