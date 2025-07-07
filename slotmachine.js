@@ -97,7 +97,6 @@ let autoSpin = false;
 let autoSpinCount = 0;
 let autoSpinMenuContainer;
 let betMenuContainer;
-let autoSpinAdvancedMenuContainer;
 let autoStopOnAnyWin = false;
 let autoStopWinExceeds = 0;
 let autoStopBalanceIncrease = 0;
@@ -1174,117 +1173,62 @@ function openAutoSpinMenu() {
   const advButton = this.add
     .text(0, panelHeight / 2 - advHeight / 2 - spacing, "Advanced", style)
     .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      closeAutoSpinMenu.call(this);
-      openAutoSpinAdvancedMenu.call(this);
-    });
+    .setInteractive({ useHandCursor: true });
   panel.add(advButton);
-  autoSpinMenuContainer.add([bg, panel]);
-}
 
-function closeAutoSpinMenu() {
-  if (autoSpinMenuContainer) {
-    autoSpinMenuContainer.destroy(true);
-    autoSpinMenuContainer = null;
-  }
-  if (autoSpinAdvancedMenuContainer) {
-    closeAutoSpinAdvancedMenu.call(this);
-  }
-}
-
-function openAutoSpinAdvancedMenu() {
-  if (autoSpinAdvancedMenuContainer) {
-    return;
-  }
-  const { width, height } = this.cameras.main;
-  autoSpinAdvancedMenuContainer = this.add.container(0, 0);
-  const bg = this.add
-    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
-    .setInteractive()
-    .on("pointerdown", () => {
-      closeAutoSpinAdvancedMenu.call(this);
-    });
-
-  const panelWidth = 360;
-  const panelHeight = 260;
-  const panel = this.add.container(width / 2, height / 2);
-  const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+  const advPanelHeight = 260;
+  const advPanel = this.add
+    .container(width / 2, height / 2 + panelHeight / 2 + spacing + advPanelHeight / 2)
+    .setVisible(false);
+  const advBg = this.add
+    .rectangle(0, 0, panelWidth, advPanelHeight, 0x222222, 0.9)
     .setOrigin(0.5);
-  panel.add(panelBg);
-  const blocker = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0)
-    .setOrigin(0.5)
-    .setInteractive()
-    .on("pointerdown", (pointer, lx, ly, event) => {
-      event.stopPropagation();
-    });
-  panel.add(blocker);
+  advPanel.add(advBg);
 
-  const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
-
+  const advStyle = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
   const checkX = -panelWidth / 2 + 20;
   const labelX = checkX + 30;
   const inputX = panelWidth / 2 - 60;
 
-  const anyWinCheck = this.add
-    .dom(checkX, -90, "input")
-    .setOrigin(0, 0.5);
+  const anyWinCheck = this.add.dom(checkX, -90, "input").setOrigin(0, 0.5);
   anyWinCheck.node.type = "checkbox";
   anyWinCheck.node.checked = autoStopOnAnyWin;
   const anyWinLabel = this.add
-    .text(labelX, -90, "Stop on any win", style)
+    .text(labelX, -90, "Stop on any win", advStyle)
     .setOrigin(0, 0.5);
-  panel.add([anyWinCheck, anyWinLabel]);
+  advPanel.add([anyWinCheck, anyWinLabel]);
 
-  const winCheck = this.add
-    .dom(checkX, -40, "input")
-    .setOrigin(0, 0.5);
+  const winCheck = this.add.dom(checkX, -40, "input").setOrigin(0, 0.5);
   winCheck.node.type = "checkbox";
   winCheck.node.checked = autoStopWinExceedsEnabled;
   const winLabel = this.add
-    .text(labelX, -40, "Win exceeds", style)
+    .text(labelX, -40, "Win exceeds", advStyle)
     .setOrigin(0, 0.5);
-  const winInput = this.add
-    .dom(inputX, -40, "input", "width: 100px")
-    .setOrigin(0.5);
+  const winInput = this.add.dom(inputX, -40, "input", "width: 100px").setOrigin(0.5);
   winInput.node.type = "number";
   winInput.node.value = autoStopWinExceeds || "";
-  panel.add([winCheck, winLabel, winInput]);
+  advPanel.add([winCheck, winLabel, winInput]);
 
-  const incCheck = this.add
-    .dom(checkX, 10, "input")
-    .setOrigin(0, 0.5);
+  const incCheck = this.add.dom(checkX, 10, "input").setOrigin(0, 0.5);
   incCheck.node.type = "checkbox";
   incCheck.node.checked = autoStopBalanceIncreaseEnabled;
-  const incLabel = this.add
-    .text(labelX, 10, "Balance +", style)
-    .setOrigin(0, 0.5);
-  const incInput = this.add
-    .dom(inputX, 10, "input", "width: 100px")
-    .setOrigin(0.5);
+  const incLabel = this.add.text(labelX, 10, "Balance +", advStyle).setOrigin(0, 0.5);
+  const incInput = this.add.dom(inputX, 10, "input", "width: 100px").setOrigin(0.5);
   incInput.node.type = "number";
   incInput.node.value = autoStopBalanceIncrease || "";
-  panel.add([incCheck, incLabel, incInput]);
+  advPanel.add([incCheck, incLabel, incInput]);
 
-  const decCheck = this.add
-    .dom(checkX, 60, "input")
-    .setOrigin(0, 0.5);
+  const decCheck = this.add.dom(checkX, 60, "input").setOrigin(0, 0.5);
   decCheck.node.type = "checkbox";
   decCheck.node.checked = autoStopBalanceDecreaseEnabled;
-  const decLabel = this.add
-    .text(labelX, 60, "Balance -", style)
-    .setOrigin(0, 0.5);
-  const decInput = this.add
-    .dom(inputX, 60, "input", "width: 100px")
-    .setOrigin(0.5);
+  const decLabel = this.add.text(labelX, 60, "Balance -", advStyle).setOrigin(0, 0.5);
+  const decInput = this.add.dom(inputX, 60, "input", "width: 100px").setOrigin(0.5);
   decInput.node.type = "number";
   decInput.node.value = autoStopBalanceDecrease || "";
-  panel.add([decCheck, decLabel, decInput]);
+  advPanel.add([decCheck, decLabel, decInput]);
 
-  const okButton = this.add
-    .text(0, panelHeight / 2 - 30, "OK", {
+  const advOk = this.add
+    .text(0, 100, "OK", {
       fontSize: "24px",
       color: "#ffffff",
       backgroundColor: "#444",
@@ -1301,17 +1245,21 @@ function openAutoSpinAdvancedMenu() {
       autoStopWinExceeds = parseFloat(winInput.node.value) || 0;
       autoStopBalanceIncrease = parseFloat(incInput.node.value) || 0;
       autoStopBalanceDecrease = parseFloat(decInput.node.value) || 0;
-      closeAutoSpinAdvancedMenu.call(this);
+      advPanel.setVisible(false);
     });
-  panel.add(okButton);
+  advPanel.add(advOk);
 
-  autoSpinAdvancedMenuContainer.add([bg, panel]);
+  autoSpinMenuContainer.add([bg, panel, advPanel]);
+
+  advButton.on("pointerdown", () => {
+    advPanel.setVisible(!advPanel.visible);
+  });
 }
 
-function closeAutoSpinAdvancedMenu() {
-  if (autoSpinAdvancedMenuContainer) {
-    autoSpinAdvancedMenuContainer.destroy(true);
-    autoSpinAdvancedMenuContainer = null;
+function closeAutoSpinMenu() {
+  if (autoSpinMenuContainer) {
+    autoSpinMenuContainer.destroy(true);
+    autoSpinMenuContainer = null;
   }
 }
 
