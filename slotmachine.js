@@ -63,6 +63,8 @@ loadSettings();
 
 let settingsButton;
 let settingsContainer;
+let infoButton;
+let infoContainer;
 let bgMusic;
 
 const symbolTextures = [
@@ -416,12 +418,27 @@ async function startGame() {
       }
     });
 
+  infoButton = this.add
+    .text(0, 0, "\u2139", {
+      fontSize: "60px",
+      color: "#888888",
+    })
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      if (infoContainer) {
+        closeInfo.call(this);
+      } else {
+        openInfo.call(this);
+      }
+    });
+
   uiContainer = this.add.container(0, 0, [
     balanceText,
     autoSpinButton,
     spinButton,
     betButton,
     settingsButton,
+    infoButton,
   ]);
 
   updateUI();
@@ -662,7 +679,8 @@ function resizeUI(gameSize) {
     !balanceText ||
     !betButton ||
     !autoSpinButton ||
-    !settingsButton
+    !settingsButton ||
+    !infoButton
   ) {
     return;
   }
@@ -679,11 +697,13 @@ function resizeUI(gameSize) {
     betButton.setOrigin(right ? 1 : 0, 0.5);
     balanceText.setOrigin(right ? 1 : 0, 0);
     settingsButton.setOrigin(right ? 0 : 1, 0);
+    infoButton.setOrigin(right ? 0 : 1, 0);
 
     spinButton.setFontSize(48 * scaleFactor);
     autoSpinButton.setFontSize(28 * scaleFactor);
     betButton.setFontSize(28 * scaleFactor);
     balanceText.setFontSize(28 * scaleFactor);
+    infoButton.setFontSize(40 * scaleFactor);
 
     const spacing =
       Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
@@ -693,6 +713,7 @@ function resizeUI(gameSize) {
     betButton.setPosition(uiX, height / 2 + spacing);
     balanceText.setPosition(uiX, margin);
     settingsButton.setPosition(settingsX, margin);
+    infoButton.setPosition(settingsX, margin + settingsButton.height + margin / 2);
   } else {
     const bottom = height - margin;
     spinButton.setOrigin(0.5, 1);
@@ -700,11 +721,13 @@ function resizeUI(gameSize) {
     betButton.setOrigin(0.5, 1);
     balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
+    infoButton.setOrigin(settings.rightHand ? 0 : 1, 0);
 
     spinButton.setFontSize(72 * scaleFactor);
     autoSpinButton.setFontSize(40 * scaleFactor);
     betButton.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
+    infoButton.setFontSize(60 * scaleFactor);
 
     const totalWidth =
       autoSpinButton.width + spinButton.width + betButton.width;
@@ -719,6 +742,7 @@ function resizeUI(gameSize) {
     balanceText.setPosition(margin, bottom - balanceOffset);
     const settingsX = settings.rightHand ? margin : width - margin;
     settingsButton.setPosition(settingsX, margin);
+    infoButton.setPosition(settingsX, margin + settingsButton.height + margin / 2);
   }
 }
 
@@ -976,5 +1000,58 @@ function closeBetMenu() {
   if (betMenuContainer) {
     betMenuContainer.destroy(true);
     betMenuContainer = null;
+  }
+}
+
+function openInfo() {
+  if (infoContainer) {
+    return;
+  }
+  const { width, height } = this.cameras.main;
+  infoContainer = this.add.container(0, 0);
+  const bg = this.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
+    .setInteractive();
+
+  const panel = this.add.container(width / 2, height / 2);
+  const panelBg = this.add
+    .rectangle(0, 0, 400, 250, 0x222222, 0.9)
+    .setOrigin(0.5);
+  const style = {
+    fontSize: "24px",
+    color: "#ffffff",
+    fontFamily: "Arial",
+    align: "center",
+    wordWrap: { width: 360 },
+  };
+  const infoText = this.add
+    .text(
+      0,
+      -40,
+      "Match symbols to win prizes!\nUse BET to adjust the stake and press SPIN.",
+      style,
+    )
+    .setOrigin(0.5);
+  const closeBtn = this.add
+    .text(0, 80, "Close", {
+      fontSize: "28px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      closeInfo.call(this);
+    });
+
+  panel.add([panelBg, infoText, closeBtn]);
+  infoContainer.add([bg, panel]);
+}
+
+function closeInfo() {
+  if (infoContainer) {
+    infoContainer.destroy(true);
+    infoContainer = null;
   }
 }
