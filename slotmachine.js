@@ -92,7 +92,6 @@ let currentBet = 1;
 let balanceText;
 let betButton;
 let spinButton;
-let spinText;
 let autoSpinButton;
 let autoSpin = false;
 let autoSpinCount = 0;
@@ -389,7 +388,6 @@ async function startGame() {
         autoSpin = false;
         autoSpinCount = 0;
         updateAutoSpinButton();
-        updateSpinButton();
       } else {
         startSpin(this);
       }
@@ -397,27 +395,14 @@ async function startGame() {
     .on("pointerup", () => {
       if (!isSpinning) {
         spinButton.setAlpha(1);
-        if (spinText) {
-          spinText.setAlpha(1);
-        }
       }
     })
     .on("pointerout", () => {
       if (!isSpinning) {
         spinButton.setAlpha(1);
-        if (spinText) {
-          spinText.setAlpha(1);
-        }
       }
     });
 
-  spinText = this.add
-    .text(0, 0, "SPIN", {
-      fontSize: "60px",
-      color: "#ffffff",
-      fontFamily: "Arial",
-    })
-    .setOrigin(0.5);
 
   autoSpinButton = this.add
     .text(0, 0, "AUTO OFF", {
@@ -436,7 +421,6 @@ async function startGame() {
       }
     });
   updateAutoSpinButton();
-  updateSpinButton();
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
@@ -469,7 +453,6 @@ async function startGame() {
   uiContainer = this.add.container(0, 0, [
     balanceText,
     autoSpinButton,
-    spinText,
     spinButton,
     betButton,
     settingsButton,
@@ -505,11 +488,6 @@ function updateAutoSpinButton() {
   }
 }
 
-function updateSpinButton() {
-  if (spinText) {
-    spinText.setText(autoSpin ? "STOP" : "SPIN");
-  }
-}
 
 function startSpin(scene) {
   if (isSpinning) {
@@ -519,14 +497,8 @@ function startSpin(scene) {
     if (!autoSpin) {
       spinButton.disableInteractive();
       spinButton.setAlpha(0.5);
-      if (spinText) {
-        spinText.setAlpha(0.5);
-      }
     } else {
       spinButton.setAlpha(1);
-      if (spinText) {
-        spinText.setAlpha(1);
-      }
     }
   }
   apiSpin(currentBet).then((result) => spin.call(scene, result));
@@ -556,14 +528,8 @@ async function spin(result) {
     if (!autoSpin) {
       spinButton.disableInteractive();
       spinButton.setAlpha(0.5);
-      if (spinText) {
-        spinText.setAlpha(0.5);
-      }
     } else {
       spinButton.setAlpha(1);
-      if (spinText) {
-        spinText.setAlpha(1);
-      }
     }
   }
 
@@ -643,9 +609,6 @@ function update(time, delta) {
     // this.game.canvas.style.filter = "";
     if (spinButton) {
       spinButton.setAlpha(1);
-      if (spinText) {
-        spinText.setAlpha(1);
-      }
       spinButton.setInteractive({ useHandCursor: true });
     }
     if (finalScreen) {
@@ -703,7 +666,6 @@ function update(time, delta) {
         autoSpin = false;
         autoSpinCount = 0;
         updateAutoSpinButton();
-        updateSpinButton();
       } else {
         updateAutoSpinButton();
         this.time.delayedCall(500, () => {
@@ -818,7 +780,6 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(right ? 0 : 1, 0);
     infoButton.setOrigin(right ? 1 : 0, 0);
 
-    spinText.setFontSize(48 * scaleFactor);
     autoSpinButton.setFontSize(28 * scaleFactor);
     betButton.setFontSize(28 * scaleFactor);
     balanceText.setFontSize(28 * scaleFactor);
@@ -828,7 +789,6 @@ function resizeUI(gameSize) {
       Math.max(spinButton.displayHeight, autoSpinButton.height, betButton.height) +
       margin;
     spinButton.setPosition(uiX, height / 2);
-    spinText.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
     betButton.setPosition(uiX, height / 2 + spacing);
     const balanceX = margin;
@@ -845,7 +805,6 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
     infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
 
-    spinText.setFontSize(72 * scaleFactor);
     autoSpinButton.setFontSize(40 * scaleFactor);
     betButton.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
@@ -858,7 +817,6 @@ function resizeUI(gameSize) {
     autoSpinButton.setPosition(x, bottom);
     x += autoSpinButton.width / 2 + gap + spinButton.displayWidth / 2;
     spinButton.setPosition(x, bottom);
-    spinText.setPosition(x, bottom);
     x += spinButton.displayWidth / 2 + gap + betButton.width / 2;
     betButton.setPosition(x, bottom);
     const balanceOffset = 80;
@@ -1194,7 +1152,6 @@ function openAutoSpinMenu() {
         autoSpin = true;
         autoSpinStartBalance = Number(balance);
         updateAutoSpinButton();
-        updateSpinButton();
         closeAutoSpinMenu.call(this);
         if (!isSpinning) {
           startSpin(this);
