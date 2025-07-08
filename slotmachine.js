@@ -788,7 +788,8 @@ function resizeUI(gameSize) {
     spinButton.setOrigin(right ? 1 : 0, 0.5);
     autoSpinButton.setOrigin(right ? 1 : 0, 0.5);
     betButton.setOrigin(right ? 1 : 0, 0.5);
-    balanceText.setOrigin(right ? 1 : 0, 0);
+    // Position balance in bottom-left corner for landscape layout
+    balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(right ? 0 : 1, 0);
     infoButton.setOrigin(right ? 1 : 0, 0);
 
@@ -804,7 +805,9 @@ function resizeUI(gameSize) {
     spinButton.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
     betButton.setPosition(uiX, height / 2 + spacing);
-    balanceText.setPosition(uiX, margin);
+    const balanceX = margin;
+    const balanceY = height - margin;
+    balanceText.setPosition(balanceX, balanceY);
     settingsButton.setPosition(settingsX, margin);
     infoButton.setPosition(infoX, margin);
   } else {
