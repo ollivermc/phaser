@@ -1404,7 +1404,7 @@ function openInfo(page = 0) {
     const desc = this.add
       .text(
         0,
-        -panelHeight / 2 + 80,
+        -panelHeight / 2 + 110,
         "All symbol combinations pay from left to right and must appear on selected paylines. To form a winning combination, three identical symbols must be aligned on a winning payline.",
         descStyle
       )
@@ -1415,7 +1415,7 @@ function openInfo(page = 0) {
     const gap = 10;
     const gridW = cellSize * cols;
     const gridH = cellSize * rows;
-    const baseY = -panelHeight / 2 + 220;
+    const baseY = -panelHeight / 2 + 260;
     const baseX = -panelWidth / 2 + margin + gridW / 2;
 
     lines.slice(0, 5).forEach((line, idx) => {
