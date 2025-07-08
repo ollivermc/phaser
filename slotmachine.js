@@ -31,6 +31,7 @@ let startX = 200;
 let centerY = 300;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
+const SPIN_BUTTON_OFFSET = 40;
 
 // Game settings with defaults
 const settings = {
@@ -788,9 +789,10 @@ function resizeUI(gameSize) {
     const spacing =
       Math.max(spinButton.displayHeight, autoSpinButton.height, betButton.height) +
       margin;
-    spinButton.setPosition(uiX, height / 2);
-    autoSpinButton.setPosition(uiX, height / 2 - spacing);
-    betButton.setPosition(uiX, height / 2 + spacing);
+    const centerY = height / 2 + SPIN_BUTTON_OFFSET;
+    spinButton.setPosition(uiX, centerY);
+    autoSpinButton.setPosition(uiX, centerY - spacing);
+    betButton.setPosition(uiX, centerY + spacing);
     const balanceX = margin;
     const balanceY = height - margin;
     balanceText.setPosition(balanceX, balanceY);
