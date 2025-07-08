@@ -74,6 +74,7 @@ let bgMusic;
 let infoButton;
 let infoContainer;
 let paytable = {};
+let winLines = [];
 
 const symbolTextures = [
   "skateboard",
@@ -312,6 +313,7 @@ async function startGame() {
   baseReels = initData.options.reels.main.map((col) => [...col]);
   currentScreen = initData.options.screen.map((row) => [...row]);
   paytable = initData.options.paytable || initData.options.paytables || {};
+  winLines = initData.options.lines || [];
 
   // start background music if enabled
   if (!bgMusic) {
@@ -1361,8 +1363,21 @@ function openInfo() {
     panel.add(text);
   });
 
+  const linesHeader = this.add
+    .text(0, 90, "WIN LINES", style)
+    .setOrigin(0.5);
+  panel.add(linesHeader);
+
+  const linesHTML = winLines
+    .map((line, idx) => `Line ${idx + 1}: ${line.join(" - ")}`)
+    .join("<br>");
+  const linesDiv = this.add
+    .dom(0, 120, "div", `width:${panelWidth - margin * 2}px; max-height:80px; overflow-y:auto; color:#ffffff; font-family:Arial; font-size:20px;`, linesHTML)
+    .setOrigin(0.5);
+  panel.add(linesDiv);
+
   const infoText = this.add
-    .text(0, panelHeight / 2 - 80, "Match 3 symbols on a line to win.", {
+    .text(0, 160, "Match 3 symbols on a line to win.", {
       fontSize: "20px",
       color: "#ffffff",
       fontFamily: "Arial",
