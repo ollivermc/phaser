@@ -1415,7 +1415,7 @@ function openInfo(page = 0) {
     const gap = 10;
     const gridW = cellSize * cols;
     const gridH = cellSize * rows;
-    const baseY = -panelHeight / 2 + 150;
+    const baseY = -panelHeight / 2 + 180;
     const baseX = -panelWidth / 2 + margin + gridW / 2;
 
     lines.slice(0, 5).forEach((line, idx) => {
