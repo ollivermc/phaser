@@ -915,9 +915,11 @@ function openSettings() {
     .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
     .setInteractive();
 
+  const panelWidth = 300;
+  const panelHeight = 360;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
-    .rectangle(0, 0, 300, 280, 0x222222, 0.9)
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
     .setOrigin(0.5);
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
 
@@ -1005,7 +1007,7 @@ function openSettings() {
     });
 
   const closeBtn = this.add
-    .text(0, 190, "Close", {
+    .text(0, panelHeight / 2 - 30, "Close", {
       fontSize: "28px",
       color: "#ffffff",
       backgroundColor: "#444",
