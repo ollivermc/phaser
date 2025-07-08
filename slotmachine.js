@@ -1398,30 +1398,33 @@ function openInfo() {
   linesData.forEach((line, idx) => {
     const r = Math.floor(idx / lineCols);
     const c = idx % lineCols;
-    const x = -panelWidth / 2 + spacing + c * (boardSize + spacing) + boardSize / 2;
-    const y = startY + r * (boardSize + spacing) + boardSize / 2;
+    const x = -panelWidth / 2 + spacing + c * (boardSize + spacing);
+    const y = startY + r * (boardSize + spacing);
 
     const container = this.add.container(x, y);
     const bgBoard = this.add
-      .rectangle(0, 0, boardSize, boardSize, 0x111111, 1)
-      .setOrigin(0.5);
+      .rectangle(boardSize / 2, boardSize / 2, boardSize, boardSize, 0x888888, 1);
     const g = this.add.graphics();
     const cellW = boardSize / cols;
     const cellH = boardSize / rows;
-    g.lineStyle(1, 0x555555, 1);
+    g.lineStyle(1, 0x333333, 1);
     for (let i = 1; i < cols; i++) {
-      g.moveTo(-boardSize / 2 + cellW * i, -boardSize / 2);
-      g.lineTo(-boardSize / 2 + cellW * i, boardSize / 2);
+      g.beginPath();
+      g.moveTo(cellW * i, 0);
+      g.lineTo(cellW * i, boardSize);
+      g.strokePath();
     }
     for (let i = 1; i < rows; i++) {
-      g.moveTo(-boardSize / 2, -boardSize / 2 + cellH * i);
-      g.lineTo(boardSize / 2, -boardSize / 2 + cellH * i);
+      g.beginPath();
+      g.moveTo(0, cellH * i);
+      g.lineTo(boardSize, cellH * i);
+      g.strokePath();
     }
     g.lineStyle(3, 0xff0000, 1);
     g.beginPath();
-    line.forEach((row, idx2) => {
-      const lx = -boardSize / 2 + cellW * idx2 + cellW / 2;
-      const ly = -boardSize / 2 + cellH * row + cellH / 2;
+    line.forEach((rowIndex, idx2) => {
+      const lx = cellW * idx2 + cellW / 2;
+      const ly = cellH * rowIndex + cellH / 2;
       if (idx2 === 0) {
         g.moveTo(lx, ly);
       } else {
