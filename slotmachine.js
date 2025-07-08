@@ -74,6 +74,7 @@ let bgMusic;
 let infoButton;
 let infoContainer;
 let paytable = {};
+let linesData = [];
 
 const symbolTextures = [
   "skateboard",
@@ -312,6 +313,7 @@ async function startGame() {
   baseReels = initData.options.reels.main.map((col) => [...col]);
   currentScreen = initData.options.screen.map((row) => [...row]);
   paytable = initData.options.paytable || initData.options.paytables || {};
+  linesData = initData.options.lines || [];
 
   // start background music if enabled
   if (!bgMusic) {
@@ -1329,6 +1331,11 @@ function openInfo() {
     .setOrigin(0.5);
   panel.add(panelBg);
 
+  const paytablePage = this.add.container(0, 0);
+  const linesPage = this.add.container(0, 0);
+  const pages = [paytablePage, linesPage];
+  let pageIndex = 0;
+
   const title = this.add
     .text(0, -panelHeight / 2 + 30, "INFO", {
       fontSize: "32px",
@@ -1336,7 +1343,7 @@ function openInfo() {
       fontFamily: "Arial",
     })
     .setOrigin(0.5);
-  panel.add(title);
+  paytablePage.add(title);
 
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
   const margin = 40;
@@ -1357,8 +1364,8 @@ function openInfo() {
     const text = this.add
       .text(x + cellWidth / 4, y, `x${payout}`, style)
       .setOrigin(0, 0.5);
-    panel.add(img);
-    panel.add(text);
+    paytablePage.add(img);
+    paytablePage.add(text);
   });
 
   const infoText = this.add
@@ -1370,7 +1377,64 @@ function openInfo() {
       wordWrap: { width: panelWidth - 40 },
     })
     .setOrigin(0.5);
-  panel.add(infoText);
+  paytablePage.add(infoText);
+
+  // lines page setup
+  const linesTitle = this.add
+    .text(0, -panelHeight / 2 + 30, "LINES", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
+  linesPage.add(linesTitle);
+
+  const boardSize = 100;
+  const spacing = 20;
+  const lineCols = 2;
+  const lineRows = Math.ceil(linesData.length / lineCols);
+  const startY = -panelHeight / 2 + 60;
+
+  linesData.forEach((line, idx) => {
+    const r = Math.floor(idx / lineCols);
+    const c = idx % lineCols;
+    const x = -panelWidth / 2 + spacing + c * (boardSize + spacing);
+    const y = startY + r * (boardSize + spacing);
+
+    const container = this.add.container(x, y);
+    const bgBoard = this.add
+      .rectangle(boardSize / 2, boardSize / 2, boardSize, boardSize, 0x888888, 1);
+    const g = this.add.graphics();
+    const cellW = boardSize / cols;
+    const cellH = boardSize / rows;
+    g.lineStyle(1, 0x333333, 1);
+    for (let i = 1; i < cols; i++) {
+      g.beginPath();
+      g.moveTo(cellW * i, 0);
+      g.lineTo(cellW * i, boardSize);
+      g.strokePath();
+    }
+    for (let i = 1; i < rows; i++) {
+      g.beginPath();
+      g.moveTo(0, cellH * i);
+      g.lineTo(boardSize, cellH * i);
+      g.strokePath();
+    }
+    g.lineStyle(3, 0xff0000, 1);
+    g.beginPath();
+    line.forEach((rowIndex, idx2) => {
+      const lx = cellW * idx2 + cellW / 2;
+      const ly = cellH * rowIndex + cellH / 2;
+      if (idx2 === 0) {
+        g.moveTo(lx, ly);
+      } else {
+        g.lineTo(lx, ly);
+      }
+    });
+    g.strokePath();
+    container.add([bgBoard, g]);
+    linesPage.add(container);
+  });
 
   const closeBtn = this.add
     .text(0, panelHeight / 2 - 30, "Close", {
@@ -1384,9 +1448,34 @@ function openInfo() {
     .on("pointerdown", () => {
       closeInfo.call(this);
     });
-  panel.add(closeBtn);
 
+  const prevBtn = this.add
+    .text(-panelWidth / 2 + 50, panelHeight / 2 - 30, "Prev", style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      showPage(pageIndex - 1);
+    });
+
+  const nextBtn = this.add
+    .text(panelWidth / 2 - 50, panelHeight / 2 - 30, "Next", style)
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      showPage(pageIndex + 1);
+    });
+
+  panel.add([paytablePage, linesPage, closeBtn, prevBtn, nextBtn]);
   infoContainer.add([bg, panel]);
+
+  function showPage(idx) {
+    pageIndex = Phaser.Math.Clamp(idx, 0, pages.length - 1);
+    pages.forEach((p, i) => p.setVisible(i === pageIndex));
+    prevBtn.setVisible(pageIndex > 0);
+    nextBtn.setVisible(pageIndex < pages.length - 1);
+  }
+
+  showPage(0);
 }
 
 function closeInfo() {
