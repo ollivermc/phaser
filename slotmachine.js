@@ -1394,42 +1394,52 @@ function openInfo(page = 0) {
       .setOrigin(0.5);
     panel.add(infoText);
   } else {
-    const gridSize = panelWidth - margin * 2;
-    const startX = -gridSize / 2;
-    const startY = -panelHeight / 2 + margin + 40;
-    const cellW = gridSize / (cols - 1);
-    const cellH = gridSize / (rows - 1);
-    const graphics = this.add.graphics();
-    graphics.lineStyle(2, 0xffffff, 0.3);
-    for (let r = 0; r < rows; r++) {
-      const y = startY + r * cellH;
-      graphics.moveTo(startX, y);
-      graphics.lineTo(startX + gridSize, y);
-    }
-    for (let c = 0; c < cols; c++) {
-      const x = startX + c * cellW;
-      graphics.moveTo(x, startY);
-      graphics.lineTo(x, startY + gridSize);
-    }
-    graphics.strokePath();
+    const descStyle = {
+      fontSize: "20px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+      align: "center",
+      wordWrap: { width: panelWidth - 40 },
+    };
+    const desc = this.add
+      .text(
+        0,
+        -panelHeight / 2 + 80,
+        "All symbol combinations pay from left to right and must appear on selected paylines. To form a winning combination, three identical symbols must be aligned on a winning payline.",
+        descStyle
+      )
+      .setOrigin(0.5);
+    panel.add(desc);
 
-    const colors = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff];
-    lines.forEach((line, idx) => {
-      graphics.lineStyle(4, colors[idx % colors.length], 1);
-      for (let c = 0; c < line.length; c++) {
-        const row = line[c];
-        const x = startX + c * cellW;
-        const y = startY + row * cellH;
-        if (c === 0) {
-          graphics.moveTo(x, y);
-        } else {
-          graphics.lineTo(x, y);
+    const cellSize = 15;
+    const gap = 10;
+    const gridW = cellSize * cols;
+    const gridH = cellSize * rows;
+    const baseY = -panelHeight / 2 + 120;
+
+    lines.slice(0, 5).forEach((line, idx) => {
+      const offsetY = baseY + idx * (gridH + gap);
+      const label = this.add
+        .text(-gridW / 2 - 20, offsetY + gridH / 2, `${idx + 1}`, style)
+        .setOrigin(0.5);
+      panel.add(label);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const active = line[c] === r;
+          const rect = this.add
+            .rectangle(
+              -gridW / 2 + c * cellSize + cellSize / 2,
+              offsetY + r * cellSize + cellSize / 2,
+              cellSize - 2,
+              cellSize - 2,
+              active ? 0x00ff00 : 0x555555
+            )
+            .setStrokeStyle(1, 0xffffff);
+          panel.add(rect);
         }
       }
-      graphics.strokePath();
     });
-
-    panel.add(graphics);
   }
 
   const closeBtn = this.add
