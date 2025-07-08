@@ -1415,12 +1415,14 @@ function openInfo(page = 0) {
     const gap = 10;
     const gridW = cellSize * cols;
     const gridH = cellSize * rows;
-    const baseY = -panelHeight / 2 + 120;
+    const baseY = -panelHeight / 2 + 150;
+    const baseX = -panelWidth / 2 + margin + gridW / 2;
 
     lines.slice(0, 5).forEach((line, idx) => {
-      const offsetY = baseY + idx * (gridH + gap);
+      const offsetX = baseX + idx * (gridW + gap);
+
       const label = this.add
-        .text(-gridW / 2 - 20, offsetY + gridH / 2, `${idx + 1}`, style)
+        .text(offsetX, baseY - 20, `${idx + 1}`, style)
         .setOrigin(0.5);
       panel.add(label);
 
@@ -1429,8 +1431,8 @@ function openInfo(page = 0) {
           const active = line[c] === r;
           const rect = this.add
             .rectangle(
-              -gridW / 2 + c * cellSize + cellSize / 2,
-              offsetY + r * cellSize + cellSize / 2,
+              offsetX - gridW / 2 + c * cellSize + cellSize / 2,
+              baseY + r * cellSize + cellSize / 2,
               cellSize - 2,
               cellSize - 2,
               active ? 0x00ff00 : 0x555555
