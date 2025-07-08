@@ -31,7 +31,9 @@ let startX = 200;
 let centerY = 300;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
-const SPIN_BUTTON_OFFSET = 40;
+// Extra vertical offset applied to the spin button group in landscape mode
+// so it sits closer to the bottom of the screen.
+const SPIN_BUTTON_OFFSET = 120;
 
 // Game settings with defaults
 const settings = {
