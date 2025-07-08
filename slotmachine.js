@@ -91,6 +91,7 @@ const symbolTextures = [
 
 const reels = [];
 let isSpinning = false;
+let isRequestingSpin = false;
 let availableBets = [];
 let currentBetIndex = 0;
 let currentBet = 1;
@@ -496,9 +497,10 @@ function updateAutoSpinButton() {
 
 
 function startSpin(scene) {
-  if (isSpinning) {
+  if (isSpinning || isRequestingSpin) {
     return;
   }
+  isRequestingSpin = true;
   if (spinButton) {
     if (!autoSpin) {
       spinButton.disableInteractive();
@@ -507,7 +509,16 @@ function startSpin(scene) {
       spinButton.setAlpha(1);
     }
   }
-  apiSpin(currentBet).then((result) => spin.call(scene, result));
+  apiSpin(currentBet)
+    .then((result) => spin.call(scene, result))
+    .catch(() => {
+      // reset state if request fails
+      isRequestingSpin = false;
+      if (spinButton && !autoSpin) {
+        spinButton.setAlpha(1);
+        spinButton.setInteractive({ useHandCursor: true });
+      }
+    });
 }
 
 async function spin(result) {
@@ -515,13 +526,11 @@ async function spin(result) {
     // handle error here
     alert(result.error);
   }
+  isRequestingSpin = false;
   console.log({
     screen: result.outcome.screen,
     words: result.outcome.screen.map((r) => r.map((c) => symbolTextures[c])),
   });
-  if (isSpinning) {
-    return;
-  }
   lastResult = result;
   if (winLine) {
     winLine.clear();
