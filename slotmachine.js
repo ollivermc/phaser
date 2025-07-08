@@ -788,7 +788,8 @@ function resizeUI(gameSize) {
     spinButton.setOrigin(right ? 1 : 0, 0.5);
     autoSpinButton.setOrigin(right ? 1 : 0, 0.5);
     betButton.setOrigin(right ? 1 : 0, 0.5);
-    balanceText.setOrigin(right ? 1 : 0, 0);
+    // Position balance in bottom-left corner for landscape layout
+    balanceText.setOrigin(0, 1);
     settingsButton.setOrigin(right ? 0 : 1, 0);
     infoButton.setOrigin(right ? 1 : 0, 0);
 
@@ -804,7 +805,9 @@ function resizeUI(gameSize) {
     spinButton.setPosition(uiX, height / 2);
     autoSpinButton.setPosition(uiX, height / 2 - spacing);
     betButton.setPosition(uiX, height / 2 + spacing);
-    balanceText.setPosition(uiX, margin);
+    const balanceX = margin;
+    const balanceY = height - margin;
+    balanceText.setPosition(balanceX, balanceY);
     settingsButton.setPosition(settingsX, margin);
     infoButton.setPosition(infoX, margin);
   } else {
@@ -912,9 +915,11 @@ function openSettings() {
     .rectangle(width / 2, height / 2, width, height, 0x000000, 0.7)
     .setInteractive();
 
+  const panelWidth = 300;
+  const panelHeight = 360;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
-    .rectangle(0, 0, 300, 280, 0x222222, 0.9)
+    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
     .setOrigin(0.5);
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
 
@@ -1002,7 +1007,7 @@ function openSettings() {
     });
 
   const closeBtn = this.add
-    .text(0, 190, "Close", {
+    .text(0, panelHeight / 2 - 30, "Close", {
       fontSize: "28px",
       color: "#ffffff",
       backgroundColor: "#444",
