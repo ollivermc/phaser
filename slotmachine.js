@@ -31,6 +31,9 @@ let startX = 200;
 let centerY = 300;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
+// Extra vertical offset applied to the spin button group in landscape mode
+// so it sits closer to the bottom of the screen.
+const SPIN_BUTTON_OFFSET = 120;
 
 // Game settings with defaults
 const settings = {
@@ -379,14 +382,8 @@ async function startGame() {
     });
 
   spinButton = this.add
-    // .image(0, 0, "spin")
-    // .setScale(0.5)
-    .text(0, 0, "SPIN", {
-      fontSize: "60px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-    })
+    .image(0, 0, "spin")
+    .setScale(0.2)
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -394,7 +391,6 @@ async function startGame() {
         autoSpin = false;
         autoSpinCount = 0;
         updateAutoSpinButton();
-        updateSpinButton();
       } else {
         startSpin(this);
       }
@@ -409,6 +405,7 @@ async function startGame() {
         spinButton.setAlpha(1);
       }
     });
+
 
   autoSpinButton = this.add
     .text(0, 0, "AUTO OFF", {
@@ -427,7 +424,6 @@ async function startGame() {
       }
     });
   updateAutoSpinButton();
-  updateSpinButton();
 
   settingsButton = this.add
     .text(0, 0, "\u2699", {
@@ -495,11 +491,6 @@ function updateAutoSpinButton() {
   }
 }
 
-function updateSpinButton() {
-  if (spinButton) {
-    spinButton.setText(autoSpin ? "STOP" : "SPIN");
-  }
-}
 
 function startSpin(scene) {
   if (isSpinning) {
@@ -678,7 +669,6 @@ function update(time, delta) {
         autoSpin = false;
         autoSpinCount = 0;
         updateAutoSpinButton();
-        updateSpinButton();
       } else {
         updateAutoSpinButton();
         this.time.delayedCall(500, () => {
@@ -793,18 +783,18 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(right ? 0 : 1, 0);
     infoButton.setOrigin(right ? 1 : 0, 0);
 
-    spinButton.setFontSize(48 * scaleFactor);
     autoSpinButton.setFontSize(28 * scaleFactor);
     betButton.setFontSize(28 * scaleFactor);
     balanceText.setFontSize(28 * scaleFactor);
     infoButton.setFontSize(48 * scaleFactor);
 
     const spacing =
-      Math.max(spinButton.height, autoSpinButton.height, betButton.height) +
+      Math.max(spinButton.displayHeight, autoSpinButton.height, betButton.height) +
       margin;
-    spinButton.setPosition(uiX, height / 2);
-    autoSpinButton.setPosition(uiX, height / 2 - spacing);
-    betButton.setPosition(uiX, height / 2 + spacing);
+    const centerY = height / 2 + SPIN_BUTTON_OFFSET;
+    spinButton.setPosition(uiX, centerY);
+    autoSpinButton.setPosition(uiX, centerY - spacing);
+    betButton.setPosition(uiX, centerY + spacing);
     const balanceX = margin;
     const balanceY = height - margin;
     balanceText.setPosition(balanceX, balanceY);
@@ -819,20 +809,19 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
     infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
 
-    spinButton.setFontSize(72 * scaleFactor);
     autoSpinButton.setFontSize(40 * scaleFactor);
     betButton.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
     infoButton.setFontSize(72 * scaleFactor);
 
     const totalWidth =
-      autoSpinButton.width + spinButton.width + betButton.width;
+      autoSpinButton.width + spinButton.displayWidth + betButton.width;
     const gap = (width - 2 * margin - totalWidth) / 4;
     let x = margin + gap + autoSpinButton.width / 2;
     autoSpinButton.setPosition(x, bottom);
-    x += autoSpinButton.width / 2 + gap + spinButton.width / 2;
+    x += autoSpinButton.width / 2 + gap + spinButton.displayWidth / 2;
     spinButton.setPosition(x, bottom);
-    x += spinButton.width / 2 + gap + betButton.width / 2;
+    x += spinButton.displayWidth / 2 + gap + betButton.width / 2;
     betButton.setPosition(x, bottom);
     const balanceOffset = 80;
     balanceText.setPosition(margin, bottom - balanceOffset);
@@ -859,7 +848,7 @@ function layoutGame(gameSize) {
     spriteScale = 0.25 * scaleFactor;
     const uiWidth =
       Math.max(
-        spinButton.width,
+        spinButton.displayWidth,
         autoSpinButton.width,
         betButton.width,
         balanceText.width,
@@ -875,7 +864,7 @@ function layoutGame(gameSize) {
     spriteScale = 0.3 * scaleFactor;
     const uiHeight = spinButton
       ? Math.max(
-          spinButton.height,
+          spinButton.displayHeight,
           autoSpinButton.height,
           betButton.height,
           settingsButton.height,
@@ -1167,7 +1156,6 @@ function openAutoSpinMenu() {
         autoSpin = true;
         autoSpinStartBalance = Number(balance);
         updateAutoSpinButton();
-        updateSpinButton();
         closeAutoSpinMenu.call(this);
         if (!isSpinning) {
           startSpin(this);
