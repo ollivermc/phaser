@@ -74,6 +74,8 @@ let bgMusic;
 let infoButton;
 let infoContainer;
 let paytable = {};
+let lines = [];
+let infoPage = 0;
 
 const symbolTextures = [
   "skateboard",
@@ -312,6 +314,7 @@ async function startGame() {
   baseReels = initData.options.reels.main.map((col) => [...col]);
   currentScreen = initData.options.screen.map((row) => [...row]);
   paytable = initData.options.paytable || initData.options.paytables || {};
+  lines = initData.options.lines || [];
 
   // start background music if enabled
   if (!bgMusic) {
@@ -449,7 +452,7 @@ async function startGame() {
       if (infoContainer) {
         closeInfo.call(this);
       } else {
-        openInfo.call(this);
+        openInfo.call(this, 0);
       }
     });
 
@@ -995,6 +998,7 @@ function openSettings() {
       saveSettings();
     });
 
+
   const closeBtn = this.add
     .text(0, panelHeight / 2 - 30, "Close", {
       fontSize: "28px",
@@ -1308,10 +1312,11 @@ function closeAutoSpinAdvancedMenu() {
   }
 }
 
-function openInfo() {
+function openInfo(page = 0) {
   if (infoContainer) {
     return;
   }
+  infoPage = page;
   const { width, height } = this.cameras.main;
   infoContainer = this.add.container(0, 0);
   const bg = this.add
@@ -1329,8 +1334,9 @@ function openInfo() {
     .setOrigin(0.5);
   panel.add(panelBg);
 
+  const titleText = page === 0 ? "INFO" : "LINES";
   const title = this.add
-    .text(0, -panelHeight / 2 + 30, "INFO", {
+    .text(0, -panelHeight / 2 + 30, titleText, {
       fontSize: "32px",
       color: "#ffffff",
       fontFamily: "Arial",
@@ -1338,39 +1344,105 @@ function openInfo() {
     .setOrigin(0.5);
   panel.add(title);
 
+  const navLabel = page === 0 ? '>' : '<';
+  const navBtn = this.add
+    .text(panelWidth / 2 - 30, -panelHeight / 2 + 30, navLabel, {
+      fontSize: '32px',
+      color: '#ffffff',
+      fontFamily: 'Arial',
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on('pointerdown', () => {
+      closeInfo.call(this);
+      openInfo.call(this, page === 0 ? 1 : 0);
+    });
+  panel.add(navBtn);
+
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
   const margin = 40;
-  const entries = Object.keys(paytable);
-  const cols = 2;
-  const rowsCount = Math.ceil(entries.length / cols);
-  const cellWidth = (panelWidth - margin * 2) / cols;
-  const cellHeight = (panelHeight - margin * 2 - 100) / rowsCount;
-  entries.forEach((key, idx) => {
-    const row = Math.floor(idx / cols);
-    const col = idx % cols;
-    const x = -panelWidth / 2 + margin + cellWidth * col + cellWidth / 2;
-    const y = -panelHeight / 2 + margin + 60 + cellHeight * row;
-    const img = this.add
-      .image(x - cellWidth / 6, y, symbolTextures[parseInt(key, 10)])
-      .setScale(0.1);
-    const payout = paytable[key][2];
-    const text = this.add
-      .text(x + cellWidth / 4, y, `x${payout}`, style)
-      .setOrigin(0, 0.5);
-    panel.add(img);
-    panel.add(text);
-  });
+  if (page === 0) {
+    const entries = Object.keys(paytable);
+    const payCols = 2;
+    const rowsCount = Math.ceil(entries.length / payCols);
+    const cellWidth = (panelWidth - margin * 2) / payCols;
+    const cellHeight = (panelHeight - margin * 2 - 100) / rowsCount;
+    entries.forEach((key, idx) => {
+      const row = Math.floor(idx / payCols);
+      const col = idx % payCols;
+      const x = -panelWidth / 2 + margin + cellWidth * col + cellWidth / 2;
+      const y = -panelHeight / 2 + margin + 60 + cellHeight * row;
+      const img = this.add
+        .image(x - cellWidth / 6, y, symbolTextures[parseInt(key, 10)])
+        .setScale(0.1);
+      const payout = paytable[key][2];
+      const text = this.add
+        .text(x + cellWidth / 4, y, `x${payout}`, style)
+        .setOrigin(0, 0.5);
+      panel.add(img);
+      panel.add(text);
+    });
 
-  const infoText = this.add
-    .text(0, panelHeight / 2 - 80, "Match 3 symbols on a line to win.", {
+    const infoText = this.add
+      .text(0, panelHeight / 2 - 80, "Match 3 symbols on a line to win.", {
+        fontSize: "20px",
+        color: "#ffffff",
+        fontFamily: "Arial",
+        align: "center",
+        wordWrap: { width: panelWidth - 40 },
+      })
+      .setOrigin(0.5);
+    panel.add(infoText);
+  } else {
+    const descStyle = {
       fontSize: "20px",
       color: "#ffffff",
       fontFamily: "Arial",
       align: "center",
       wordWrap: { width: panelWidth - 40 },
-    })
-    .setOrigin(0.5);
-  panel.add(infoText);
+    };
+    const desc = this.add
+      .text(
+        0,
+        -panelHeight / 2 + 110,
+        "All symbol combinations pay from left to right and must appear on selected paylines. To form a winning combination, three identical symbols must be aligned on a winning payline.",
+        descStyle
+      )
+      .setOrigin(0.5);
+    panel.add(desc);
+
+    const cellSize = 15;
+    const gap = 10;
+    const gridW = cellSize * cols;
+    const gridH = cellSize * rows;
+    const baseY = -panelHeight / 2 + 260;
+    const baseX = -panelWidth / 2 + margin + gridW / 2;
+
+    lines.slice(0, 5).forEach((line, idx) => {
+      const offsetX = baseX + idx * (gridW + gap);
+
+      const label = this.add
+        .text(offsetX, baseY - 20, `${idx + 1}`, style)
+        .setOrigin(0.5);
+      panel.add(label);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const active = line[c] === r;
+          const rect = this.add
+            .rectangle(
+              offsetX - gridW / 2 + c * cellSize + cellSize / 2,
+              baseY + r * cellSize + cellSize / 2,
+              cellSize - 2,
+              cellSize - 2,
+              active ? 0x00ff00 : 0x555555
+            )
+            .setStrokeStyle(1, 0xffffff);
+          panel.add(rect);
+        }
+      }
+    });
+  }
 
   const closeBtn = this.add
     .text(0, panelHeight / 2 - 30, "Close", {
