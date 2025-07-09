@@ -801,9 +801,16 @@ function resizeUI(gameSize) {
     infoButton.setFontSize(48 * scaleFactor);
 
     const spacing =
-      Math.max(spinButton.displayHeight, autoSpinButton.height, betButton.height) +
+      Math.max(
+        spinButton.displayHeight,
+        autoSpinButton.height,
+        betButton.height,
+      ) +
       margin;
-    const centerY = height / 2 + SPIN_BUTTON_OFFSET;
+    const centerY = Math.min(
+      height / 2 + SPIN_BUTTON_OFFSET,
+      height - margin - spacing,
+    );
     spinButton.setPosition(uiX, centerY);
     autoSpinButton.setPosition(uiX, centerY - spacing);
     betButton.setPosition(uiX, centerY + spacing);
