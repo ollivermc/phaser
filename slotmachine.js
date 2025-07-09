@@ -922,6 +922,13 @@ function openSettings() {
   const panelBg = this.add
     .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
     .setOrigin(0.5);
+  const title = this.add
+    .text(0, -panelHeight / 2 + 30, "SETTINGS", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
 
   const quickText = this.add
@@ -1023,6 +1030,7 @@ function openSettings() {
 
   panel.add([
     panelBg,
+    title,
     quickText,
     handText,
     musicText,
