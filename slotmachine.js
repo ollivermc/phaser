@@ -229,6 +229,7 @@ function preload() {
   });
 
   this.load.image("spin", "assets/ui/spin.png");
+  this.load.image("settingsPanel", "assets/ui/settings_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
   this.load.image("skate", "assets/symbols/sliced_skate_image_2.png");
   this.load.image("helmet", "assets/symbols/sliced_skate_image_3.png");
@@ -919,9 +920,18 @@ function openSettings() {
   const panelWidth = 300;
   const panelHeight = 420;
   const panel = this.add.container(width / 2, height / 2);
-  const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
-    .setOrigin(0.5);
+  const panelBg = this.add.nineslice(
+    0,
+    0,
+    panelWidth,
+    panelHeight,
+    "settingsPanel",
+    undefined,
+    20,
+    20,
+    20,
+    20,
+  ).setOrigin(0.5);
   const title = this.add
     .text(0, -panelHeight / 2 + 30, "SETTINGS", {
       fontSize: "32px",
