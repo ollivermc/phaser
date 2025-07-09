@@ -917,7 +917,7 @@ function openSettings() {
     .setInteractive();
 
   const panelWidth = 300;
-  const panelHeight = 360;
+  const panelHeight = 420;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
     .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
@@ -982,7 +982,7 @@ function openSettings() {
     .text(0, 100, `Volume: ${Math.round(settings.volume * 100)}%`, style)
     .setOrigin(0.5);
   const volumeSlider = this.add
-    .dom(0, 140, "input")
+    .dom(0, 150, "input")
     .setOrigin(0.5);
   volumeSlider.node.type = "range";
   volumeSlider.node.min = 0;
@@ -1003,7 +1003,7 @@ function openSettings() {
 
 
   const closeBtn = this.add
-    .text(0, panelHeight / 2 - 30, "Close", {
+    .text(0, panelHeight / 2 - 10, "Close", {
       fontSize: "28px",
       color: "#ffffff",
       backgroundColor: "#444",
