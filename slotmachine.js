@@ -1155,9 +1155,18 @@ function openAutoSpinMenu() {
     advHeight;
 
   const panel = this.add.container(width / 2, height / 2);
-  const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
-    .setOrigin(0.5);
+  const panelBg = this.add.nineslice(
+    0,
+    0,
+    "settingsPanel",
+    undefined,
+    panelWidth,
+    panelHeight,
+    20,
+    20,
+    20,
+    20,
+  ).setOrigin(0.5);
   panel.add(panelBg);
 
   const style = {
@@ -1229,9 +1238,18 @@ function openAutoSpinAdvancedMenu() {
   const panelWidth = 360;
   const panelHeight = 260;
   const panel = this.add.container(width / 2, height / 2);
-  const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
-    .setOrigin(0.5);
+  const panelBg = this.add.nineslice(
+    0,
+    0,
+    "settingsPanel",
+    undefined,
+    panelWidth,
+    panelHeight,
+    20,
+    20,
+    20,
+    20,
+  ).setOrigin(0.5);
   panel.add(panelBg);
   const blocker = this.add
     .rectangle(0, 0, panelWidth, panelHeight, 0x000000, 0)
