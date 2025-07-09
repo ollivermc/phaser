@@ -16,7 +16,7 @@ const config = {
   },
   dom: {
     createContainer: true,
-    pointerEvents: 'auto',
+    pointerEvents: "auto",
   },
 };
 
@@ -230,6 +230,8 @@ function preload() {
   });
 
   this.load.image("spin", "assets/ui/spin.png");
+  this.load.image("settingsPanel", "assets/ui/settings_panel.png");
+  this.load.image("betPanel", "assets/ui/bet_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
   this.load.image("skate", "assets/symbols/sliced_skate_image_2.png");
   this.load.image("helmet", "assets/symbols/sliced_skate_image_3.png");
@@ -411,7 +413,6 @@ async function startGame() {
       }
     });
 
-
   autoSpinButton = this.add
     .text(0, 0, "AUTO OFF", {
       fontSize: "36px",
@@ -487,15 +488,13 @@ function updateUI() {
 function updateAutoSpinButton() {
   if (autoSpinButton) {
     if (autoSpin && autoSpinCount !== 0) {
-      const label =
-        autoSpinCount === Infinity ? "∞" : `${autoSpinCount}`;
+      const label = autoSpinCount === Infinity ? "∞" : `${autoSpinCount}`;
       autoSpinButton.setText(`AUTO ${label}`);
     } else {
       autoSpinButton.setText("AUTO OFF");
     }
   }
 }
-
 
 function startSpin(scene) {
   if (isSpinning || isRequestingSpin) {
@@ -931,7 +930,18 @@ function openSettings() {
   const margin = 20;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .nineslice(
+      0,
+      0,
+      "settingsPanel",
+      undefined,
+      panelWidth,
+      panelHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5);
   const title = this.add
     .text(0, -panelHeight / 2 + 30, "SETTINGS", {
@@ -992,9 +1002,7 @@ function openSettings() {
   const volumeText = this.add
     .text(0, 100, `Volume: ${Math.round(settings.volume * 100)}%`, style)
     .setOrigin(0.5);
-  const volumeSlider = this.add
-    .dom(0, 150, "input")
-    .setOrigin(0.5);
+  const volumeSlider = this.add.dom(0, 150, "input").setOrigin(0.5);
   volumeSlider.node.type = "range";
   volumeSlider.node.min = 0;
   volumeSlider.node.max = 100;
@@ -1011,7 +1019,6 @@ function openSettings() {
     volumeText.setText(`Volume: ${value}%`);
     saveSettings();
   });
-
 
   const closeBtn = this.add
     .text(0, panelHeight / 2 - 10, "Close", {
@@ -1077,7 +1084,18 @@ function openBetMenu() {
     rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
 
   const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .nineslice(
+      0,
+      0,
+      "settingsPanel",
+      undefined,
+      panelWidth,
+      panelHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5);
 
   panel.add(panelBg);
@@ -1153,7 +1171,18 @@ function openAutoSpinMenu() {
 
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .nineslice(
+      0,
+      0,
+      "settingsPanel",
+      undefined,
+      panelWidth,
+      panelHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5);
   panel.add(panelBg);
 
@@ -1168,8 +1197,16 @@ function openAutoSpinMenu() {
   options.forEach((opt, idx) => {
     const row = Math.floor(idx / cols);
     const col = idx % cols;
-    const x = -panelWidth / 2 + spacing + col * (buttonWidth + spacing) + buttonWidth / 2;
-    const y = -panelHeight / 2 + spacing + row * (buttonHeight + spacing) + buttonHeight / 2;
+    const x =
+      -panelWidth / 2 +
+      spacing +
+      col * (buttonWidth + spacing) +
+      buttonWidth / 2;
+    const y =
+      -panelHeight / 2 +
+      spacing +
+      row * (buttonHeight + spacing) +
+      buttonHeight / 2;
     const label = `${opt}`;
     const text = this.add
       .text(x, y, label, style)
@@ -1227,7 +1264,18 @@ function openAutoSpinAdvancedMenu() {
   const panelHeight = 260;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .nineslice(
+      0,
+      0,
+      "settingsPanel",
+      undefined,
+      panelWidth,
+      panelHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5);
   panel.add(panelBg);
   const blocker = this.add
@@ -1245,9 +1293,7 @@ function openAutoSpinAdvancedMenu() {
   const labelX = checkX + 30;
   const inputX = panelWidth / 2 - 60;
 
-  const anyWinCheck = this.add
-    .dom(checkX, -90, "input")
-    .setOrigin(0, 0.5);
+  const anyWinCheck = this.add.dom(checkX, -90, "input").setOrigin(0, 0.5);
   anyWinCheck.node.type = "checkbox";
   anyWinCheck.node.checked = autoStopOnAnyWin;
   const anyWinLabel = this.add
@@ -1255,9 +1301,7 @@ function openAutoSpinAdvancedMenu() {
     .setOrigin(0, 0.5);
   panel.add([anyWinCheck, anyWinLabel]);
 
-  const winCheck = this.add
-    .dom(checkX, -40, "input")
-    .setOrigin(0, 0.5);
+  const winCheck = this.add.dom(checkX, -40, "input").setOrigin(0, 0.5);
   winCheck.node.type = "checkbox";
   winCheck.node.checked = autoStopWinExceedsEnabled;
   const winLabel = this.add
@@ -1270,9 +1314,7 @@ function openAutoSpinAdvancedMenu() {
   winInput.node.value = autoStopWinExceeds || "";
   panel.add([winCheck, winLabel, winInput]);
 
-  const incCheck = this.add
-    .dom(checkX, 10, "input")
-    .setOrigin(0, 0.5);
+  const incCheck = this.add.dom(checkX, 10, "input").setOrigin(0, 0.5);
   incCheck.node.type = "checkbox";
   incCheck.node.checked = autoStopBalanceIncreaseEnabled;
   const incLabel = this.add
@@ -1285,9 +1327,7 @@ function openAutoSpinAdvancedMenu() {
   incInput.node.value = autoStopBalanceIncrease || "";
   panel.add([incCheck, incLabel, incInput]);
 
-  const decCheck = this.add
-    .dom(checkX, 60, "input")
-    .setOrigin(0, 0.5);
+  const decCheck = this.add.dom(checkX, 60, "input").setOrigin(0, 0.5);
   decCheck.node.type = "checkbox";
   decCheck.node.checked = autoStopBalanceDecreaseEnabled;
   const decLabel = this.add
@@ -1350,7 +1390,18 @@ function openInfo(page = 0) {
   const panelHeight = 420;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .nineslice(
+      0,
+      0,
+      "settingsPanel",
+      undefined,
+      panelWidth,
+      panelHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5);
   panel.add(panelBg);
 
@@ -1364,16 +1415,16 @@ function openInfo(page = 0) {
     .setOrigin(0.5);
   panel.add(title);
 
-  const navLabel = page === 0 ? '>' : '<';
+  const navLabel = page === 0 ? ">" : "<";
   const navBtn = this.add
     .text(panelWidth / 2 - 30, -panelHeight / 2 + 30, navLabel, {
-      fontSize: '32px',
-      color: '#ffffff',
-      fontFamily: 'Arial',
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
     })
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
-    .on('pointerdown', () => {
+    .on("pointerdown", () => {
       closeInfo.call(this);
       openInfo.call(this, page === 0 ? 1 : 0);
     });
@@ -1426,7 +1477,7 @@ function openInfo(page = 0) {
         0,
         -panelHeight / 2 + 110,
         "All symbol combinations pay from left to right and must appear on selected paylines. To form a winning combination, three identical symbols must be aligned on a winning payline.",
-        descStyle
+        descStyle,
       )
       .setOrigin(0.5);
     panel.add(desc);
@@ -1455,7 +1506,7 @@ function openInfo(page = 0) {
               baseY + r * cellSize + cellSize / 2,
               cellSize - 2,
               cellSize - 2,
-              active ? 0x00ff00 : 0x555555
+              active ? 0x00ff00 : 0x555555,
             )
             .setStrokeStyle(1, 0xffffff);
           panel.add(rect);
