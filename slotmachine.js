@@ -32,8 +32,9 @@ let centerY = 300;
 const SPIN_SPEED = 2400;
 const DECELERATION = 60000;
 // Extra vertical offset applied to the spin button group in landscape mode
-// so it sits closer to the bottom of the screen.
-const SPIN_BUTTON_OFFSET = 120;
+// so it sits closer to the bottom of the screen. Reduced to keep the
+// buttons higher up when space is limited.
+const SPIN_BUTTON_OFFSET = 40;
 
 // Game settings with defaults
 const settings = {
@@ -804,8 +805,14 @@ function resizeUI(gameSize) {
         spinButton.displayHeight,
         autoSpinButton.height,
         betButton.height,
-      ) + margin;
-    const centerY = height / 2 + SPIN_BUTTON_OFFSET;
+      ) +
+      margin;
+    const minCenterY =
+      spacing + autoSpinButton.height / 2 + infoButton.height + margin;
+    const centerY = Math.max(
+      minCenterY,
+      Math.min(height / 2 + SPIN_BUTTON_OFFSET, height - margin - spacing),
+    );
     spinButton.setPosition(uiX, centerY);
     autoSpinButton.setPosition(uiX, centerY - spacing);
     betButton.setPosition(uiX, centerY + spacing);
@@ -920,6 +927,7 @@ function openSettings() {
 
   const panelWidth = 300;
   const panelHeight = 420;
+  const margin = 20;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
     .nineslice(
@@ -1036,6 +1044,12 @@ function openSettings() {
     volumeSlider,
     closeBtn,
   ]);
+  const panelScale = Math.min(
+    (width - margin * 2) / panelWidth,
+    (height - margin * 2) / panelHeight,
+    1,
+  );
+  panel.setScale(panelScale);
   settingsContainer.add([bg, panel]);
 }
 
