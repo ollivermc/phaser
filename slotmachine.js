@@ -923,10 +923,10 @@ function openSettings() {
   const panelBg = this.add.nineslice(
     0,
     0,
-    panelWidth,
-    panelHeight,
     "settingsPanel",
     undefined,
+    panelWidth,
+    panelHeight,
     20,
     20,
     20,
