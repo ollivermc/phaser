@@ -981,38 +981,25 @@ function openSettings() {
   const volumeText = this.add
     .text(0, 100, `Volume: ${Math.round(settings.volume * 100)}%`, style)
     .setOrigin(0.5);
-  const volDown = this.add
-    .text(-40, 140, "-", style)
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      settings.volume = Math.max(
-        0,
-        Math.round((settings.volume - 0.1) * 10) / 10,
-      );
-      this.sound.volume = settings.volume;
-      if (bgMusic) {
-        bgMusic.setVolume(settings.volume);
-      }
-      volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
-      saveSettings();
-    });
-  const volUp = this.add
-    .text(40, 140, "+", style)
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      settings.volume = Math.min(
-        1,
-        Math.round((settings.volume + 0.1) * 10) / 10,
-      );
-      this.sound.volume = settings.volume;
-      if (bgMusic) {
-        bgMusic.setVolume(settings.volume);
-      }
-      volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
-      saveSettings();
-    });
+  const volumeSlider = this.add
+    .dom(0, 140, "input")
+    .setOrigin(0.5);
+  volumeSlider.node.type = "range";
+  volumeSlider.node.min = 0;
+  volumeSlider.node.max = 100;
+  volumeSlider.node.step = 1;
+  volumeSlider.node.value = Math.round(settings.volume * 100);
+  volumeSlider.node.style.width = "160px";
+  volumeSlider.node.addEventListener("input", () => {
+    const value = parseInt(volumeSlider.node.value, 10);
+    settings.volume = value / 100;
+    this.sound.volume = settings.volume;
+    if (bgMusic) {
+      bgMusic.setVolume(settings.volume);
+    }
+    volumeText.setText(`Volume: ${value}%`);
+    saveSettings();
+  });
 
 
   const closeBtn = this.add
@@ -1036,8 +1023,7 @@ function openSettings() {
     musicText,
     soundText,
     volumeText,
-    volDown,
-    volUp,
+    volumeSlider,
     closeBtn,
   ]);
   settingsContainer.add([bg, panel]);
