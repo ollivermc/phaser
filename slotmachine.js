@@ -928,6 +928,7 @@ function openSettings() {
 
   const panelWidth = 300;
   const panelHeight = 420;
+  const margin = 20;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
     .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
@@ -1036,6 +1037,12 @@ function openSettings() {
     volumeSlider,
     closeBtn,
   ]);
+  const panelScale = Math.min(
+    (width - margin * 2) / panelWidth,
+    (height - margin * 2) / panelHeight,
+    1,
+  );
+  panel.setScale(panelScale);
   settingsContainer.add([bg, panel]);
 }
 
