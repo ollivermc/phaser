@@ -230,6 +230,7 @@ function preload() {
 
   this.load.image("spin", "assets/ui/spin.png");
   this.load.image("settingsPanel", "assets/ui/settings_panel.png");
+  this.load.image("betPanel", "assets/ui/bet_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
   this.load.image("skate", "assets/symbols/sliced_skate_image_2.png");
   this.load.image("helmet", "assets/symbols/sliced_skate_image_3.png");
@@ -1069,9 +1070,18 @@ function openBetMenu() {
   const panelHeight =
     rowsCount * buttonHeight + (rowsCount - 1) * spacing + spacing * 2;
 
-  const panelBg = this.add
-    .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
-    .setOrigin(0.5);
+  const panelBg = this.add.nineslice(
+    0,
+    0,
+    "betPanel",
+    undefined,
+    panelWidth,
+    panelHeight,
+    20,
+    20,
+    20,
+    20,
+  ).setOrigin(0.5);
 
   panel.add(panelBg);
   const style = {
