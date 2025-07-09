@@ -917,10 +917,17 @@ function openSettings() {
     .setInteractive();
 
   const panelWidth = 300;
-  const panelHeight = 360;
+  const panelHeight = 420;
   const panel = this.add.container(width / 2, height / 2);
   const panelBg = this.add
     .rectangle(0, 0, panelWidth, panelHeight, 0x222222, 0.9)
+    .setOrigin(0.5);
+  const title = this.add
+    .text(0, -panelHeight / 2 + 30, "SETTINGS", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
     .setOrigin(0.5);
   const style = { fontSize: "24px", color: "#ffffff", fontFamily: "Arial" };
 
@@ -974,42 +981,29 @@ function openSettings() {
   const volumeText = this.add
     .text(0, 100, `Volume: ${Math.round(settings.volume * 100)}%`, style)
     .setOrigin(0.5);
-  const volDown = this.add
-    .text(-40, 140, "-", style)
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      settings.volume = Math.max(
-        0,
-        Math.round((settings.volume - 0.1) * 10) / 10,
-      );
-      this.sound.volume = settings.volume;
-      if (bgMusic) {
-        bgMusic.setVolume(settings.volume);
-      }
-      volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
-      saveSettings();
-    });
-  const volUp = this.add
-    .text(40, 140, "+", style)
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true })
-    .on("pointerdown", () => {
-      settings.volume = Math.min(
-        1,
-        Math.round((settings.volume + 0.1) * 10) / 10,
-      );
-      this.sound.volume = settings.volume;
-      if (bgMusic) {
-        bgMusic.setVolume(settings.volume);
-      }
-      volumeText.setText(`Volume: ${Math.round(settings.volume * 100)}%`);
-      saveSettings();
-    });
+  const volumeSlider = this.add
+    .dom(0, 150, "input")
+    .setOrigin(0.5);
+  volumeSlider.node.type = "range";
+  volumeSlider.node.min = 0;
+  volumeSlider.node.max = 100;
+  volumeSlider.node.step = 1;
+  volumeSlider.node.value = Math.round(settings.volume * 100);
+  volumeSlider.node.style.width = "160px";
+  volumeSlider.node.addEventListener("input", () => {
+    const value = parseInt(volumeSlider.node.value, 10);
+    settings.volume = value / 100;
+    this.sound.volume = settings.volume;
+    if (bgMusic) {
+      bgMusic.setVolume(settings.volume);
+    }
+    volumeText.setText(`Volume: ${value}%`);
+    saveSettings();
+  });
 
 
   const closeBtn = this.add
-    .text(0, panelHeight / 2 - 30, "Close", {
+    .text(0, panelHeight / 2 - 10, "Close", {
       fontSize: "28px",
       color: "#ffffff",
       backgroundColor: "#444",
@@ -1023,13 +1017,13 @@ function openSettings() {
 
   panel.add([
     panelBg,
+    title,
     quickText,
     handText,
     musicText,
     soundText,
     volumeText,
-    volDown,
-    volUp,
+    volumeSlider,
     closeBtn,
   ]);
   settingsContainer.add([bg, panel]);
