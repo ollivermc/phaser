@@ -152,6 +152,7 @@ let currency;
 let lastResult = null;
 let winLine;
 let winText;
+let winLights;
 const offset = 100;
 let spriteScale = 0.3;
 
@@ -728,10 +729,11 @@ function highlightWin(outcome, features) {
       switch (winType) {
         case "scatter": {
           scatter = true;
-          const mult = features && features.bonus_data ? features.bonus_data.multiplier : null;
+          const mult = features && features.bonus_data
+            ? features.bonus_data.multiplier
+            : null;
           openBonusPopup.call(this, mult, () => {
-            winText.setText(`WIN ${formatCurrency(amount)}`);
-            winText.setVisible(true);
+            showWinEffect.call(this, amount);
             updateUI();
           });
           break;
@@ -755,8 +757,7 @@ function highlightWin(outcome, features) {
     }
   }
   if (!scatter) {
-    winText.setText(`WIN ${formatCurrency(amount)}`);
-    winText.setVisible(true);
+    showWinEffect.call(this, amount);
   }
 }
 
@@ -766,6 +767,10 @@ function clearWin() {
   }
   if (winText) {
     winText.setVisible(false);
+  }
+  if (winLights) {
+    winLights.destroy(true);
+    winLights = null;
   }
 }
 
@@ -1552,18 +1557,53 @@ function openBonusPopup(multiplier, onContinue) {
     .rectangle(width / 2, height / 2, width, height, 0x000000, 0.8)
     .setInteractive();
 
+  const ring = scene.add.container(width / 2, height / 2);
+  const lightCount = 12;
+  const radius = 180;
+  for (let i = 0; i < lightCount; i++) {
+    const angle = (Math.PI * 2 * i) / lightCount;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const light = scene.add.circle(x, y, 10, 0xffff00, 1);
+    ring.add(light);
+    scene.tweens.add({
+      targets: light,
+      alpha: 0.2,
+      duration: 300,
+      yoyo: true,
+      repeat: -1,
+      delay: i * 50,
+    });
+  }
+  scene.tweens.add({
+    targets: ring,
+    angle: 360,
+    duration: 4000,
+    repeat: -1,
+  });
+
   const title = scene.add
-    .text(width / 2, height / 2 - 40, "BONUS!", {
+    .text(width / 2, height / 2 - 60, "BONUS!", {
       fontSize: "64px",
       color: "#ffff00",
       fontFamily: "Arial",
     })
     .setOrigin(0.5);
 
+  const message = scene.add
+    .text(width / 2, height / 2, "Continue to see how much you won!", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+      wordWrap: { width: width - 60, useAdvancedWrap: true },
+      align: "center",
+    })
+    .setOrigin(0.5);
+
   let multText = null;
   if (multiplier) {
     multText = scene.add
-      .text(width / 2, height / 2 + 20, `x${multiplier}`, {
+      .text(width / 2, height / 2 + 40, `x${multiplier}`, {
         fontSize: "32px",
         color: "#ffffff",
         fontFamily: "Arial",
@@ -1572,7 +1612,7 @@ function openBonusPopup(multiplier, onContinue) {
   }
 
   const cont = scene.add
-    .text(width / 2, height / 2 + 100, "Continue", {
+    .text(width / 2, height / 2 + 110, "Continue", {
       fontSize: "32px",
       color: "#ffffff",
       backgroundColor: "#444",
@@ -1588,9 +1628,17 @@ function openBonusPopup(multiplier, onContinue) {
       }
     });
 
-  const items = [bg, title, cont];
+  scene.tweens.add({
+    targets: cont,
+    alpha: 0.3,
+    yoyo: true,
+    repeat: -1,
+    duration: 500,
+  });
+
+  const items = [bg, ring, title, message, cont];
   if (multText) {
-    items.splice(2, 0, multText);
+    items.splice(3, 0, multText);
   }
 
   bonusContainer.add(items);
@@ -1601,4 +1649,54 @@ function closeBonusPopup() {
     bonusContainer.destroy(true);
     bonusContainer = null;
   }
+}
+
+function showWinEffect(amount) {
+  if (!winText) {
+    return;
+  }
+  const scene = this;
+  winText.setText(`WIN ${formatCurrency(amount)}`);
+  winText.setScale(0);
+  winText.setVisible(true);
+  scene.tweens.add({
+    targets: winText,
+    scale: 1,
+    duration: 800,
+    ease: "Bounce.easeOut",
+  });
+
+  if (winLights) {
+    winLights.destroy(true);
+  }
+  const radius = winText.displayWidth / 2 + 40;
+  const count = 16;
+  winLights = scene.add.container(winText.x, winText.y);
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i) / count;
+    const x = Math.cos(angle) * radius;
+    const y = Math.sin(angle) * radius;
+    const light = scene.add.circle(x, y, 8, 0xffff00, 1);
+    winLights.add(light);
+    scene.tweens.add({
+      targets: light,
+      alpha: 0.2,
+      duration: 300,
+      yoyo: true,
+      repeat: -1,
+      delay: i * 80,
+    });
+  }
+  scene.tweens.add({
+    targets: winLights,
+    angle: 360,
+    duration: 4000,
+    repeat: -1,
+  });
+  scene.time.delayedCall(4000, () => {
+    if (winLights) {
+      winLights.destroy(true);
+      winLights = null;
+    }
+  });
 }
