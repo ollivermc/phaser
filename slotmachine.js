@@ -151,6 +151,7 @@ let currency;
 let lastResult = null;
 let winLine;
 let winText;
+let bonusContainer;
 const offset = 100;
 let spriteScale = 0.3;
 
@@ -724,16 +725,8 @@ function highlightWin(outcome, features) {
       const [winType, multiplier, line] = winData;
       switch (winType) {
         case "scatter":
-          // this is the large win bonus thingy; data is available in features and looks like..
-          // {
-          //     "bonus_data": {
-          //         "bonus_multiplier": 53,
-          //         "scatters_multiplier": 1,
-          //         "scatters_count": 3,
-          //         "multiplier": 53
-          //     }
-          // }
-          console.log("Big win!!", features);
+          const multi = features?.bonus_data?.multiplier || multiplier || 1;
+          showBonusAnimation.call(this, multi);
           break;
         case "line":
           winLine.lineStyle(6, 0xff0000, 1);
@@ -758,12 +751,84 @@ function highlightWin(outcome, features) {
   winText.setVisible(true);
 }
 
+function showBonusAnimation(multiplier) {
+  if (bonusContainer) {
+    bonusContainer.destroy(true);
+    bonusContainer = null;
+  }
+  const { width, height } = this.cameras.main;
+  bonusContainer = this.add.container(0, 0);
+  if (!this.textures.exists("bonusStar")) {
+    const g = this.add.graphics();
+    const spikes = 5;
+    const outer = 20;
+    const inner = 8;
+    g.fillStyle(0xffffff, 1);
+    g.beginPath();
+    for (let i = 0; i < spikes * 2; i++) {
+      const radius = i % 2 === 0 ? outer : inner;
+      const angle = (i * Math.PI) / spikes;
+      const x = outer + Math.cos(angle) * radius;
+      const y = outer + Math.sin(angle) * radius;
+      if (i === 0) {
+        g.moveTo(x, y);
+      } else {
+        g.lineTo(x, y);
+      }
+    }
+    g.closePath();
+    g.fillPath();
+    g.generateTexture("bonusStar", outer * 2, outer * 2);
+    g.destroy();
+  }
+  const particles = this.add.particles("bonusStar");
+  const emitter = particles.createEmitter({
+    x: width / 2,
+    y: height / 2,
+    speed: { min: 200, max: 400 },
+    angle: { min: 0, max: 360 },
+    scale: { start: 1, end: 0 },
+    blendMode: "ADD",
+    lifespan: 800,
+    quantity: 4,
+  });
+  bonusContainer.add(particles);
+  const text = this.add
+    .text(width / 2, height / 2, `BONUS x${multiplier}`, {
+      fontSize: "80px",
+      color: "#ffff00",
+      fontFamily: "Arial Black",
+    })
+    .setStroke("#ffffff", 6)
+    .setOrigin(0.5);
+  text.setScale(0);
+  bonusContainer.add(text);
+  this.tweens.add({
+    targets: text,
+    scale: 1.5,
+    duration: 800,
+    ease: "Back.easeOut",
+    yoyo: true,
+  });
+  this.time.delayedCall(3000, () => {
+    particles.destroy();
+    if (bonusContainer) {
+      bonusContainer.destroy(true);
+      bonusContainer = null;
+    }
+  });
+}
+
 function clearWin() {
   if (winLine) {
     winLine.clear();
   }
   if (winText) {
     winText.setVisible(false);
+  }
+  if (bonusContainer) {
+    bonusContainer.destroy(true);
+    bonusContainer = null;
   }
 }
 
