@@ -272,6 +272,46 @@ export async function init() {
 }
 
 function getOutcome(betAmount) {
+  // bonus win
+  return {
+    features: {
+      bonus_data: {
+        multiplier: 101,
+      },
+    },
+    outcome: {
+      bet: betAmount,
+      screen: [
+        ["6", "6", "8"],
+        ["8", "7", "7"],
+        ["2", "8", "6"],
+      ],
+      special_symbols: {
+        scatter: {
+          8: [
+            [0, 2],
+            [1, 0],
+            [2, 1],
+          ],
+        },
+      },
+      storage: null,
+      win: betAmount * 20.2,
+      wins: [
+        [
+          "scatter",
+          betAmount * 20.2,
+          [
+            [0, 2],
+            [1, 0],
+            [2, 1],
+          ],
+        ],
+      ],
+    },
+  };
+
+  // multi line win
   return {
     screen: [
       ["4", "7", "0"],
@@ -287,83 +327,13 @@ function getOutcome(betAmount) {
     ],
     storage: null,
   };
-
-  return [
-    {
-      bet: betAmount,
-      screen: [
-        ["3", "4", "2"],
-        ["0", "2", "2"],
-        ["1", "6", "0"],
-      ],
-      special_symbols: {},
-      storage: null,
-      win: 0.0,
-      wins: [],
-    },
-    {
-      bet: betAmount,
-      screen: [
-        ["7", "0", "6"],
-        ["7", "3", "7"],
-        ["7", "1", "0"],
-      ],
-      special_symbols: {},
-      storage: null,
-      win: betAmount * 2.0,
-      wins: [["line", 1.0, [0, 0, 0], 0]],
-    },
-    {
-      bet: betAmount,
-      screen: [
-        ["3", "1", "7"],
-        ["3", "7", "7"],
-        ["7", "0", "6"],
-      ],
-      special_symbols: {},
-      storage: null,
-      win: betAmount * 2.0,
-      wins: [["line", 1.0, [2, 1, 0], 0]],
-    },
-    {
-      bet: betAmount,
-      screen: [
-        ["0", "3", "4"],
-        ["6", "3", "6"],
-        ["1", "0", "7"],
-      ],
-      special_symbols: {},
-      storage: null,
-      win: 0.0,
-      wins: [],
-    },
-    {
-      bet: 1,
-      screen: [
-        ["0", "8", "7"],
-        ["6", "5", "6"],
-        ["5", "2", "8"],
-      ],
-      special_symbols: {
-        scatter: {
-          8: [
-            [0, 1],
-            [2, 2],
-          ],
-        },
-      },
-      storage: null,
-      win: 0.0,
-      wins: [],
-    },
-  ][Math.floor(Math.random() * 4)];
 }
 
 export async function spin(betAmount) {
   // real api
-  return await sendRequest("spin", {
-    bet: betAmount, // example response is based on bet amount of 1,
-  });
+  // return await sendRequest("spin", {
+  //   bet: betAmount, // example response is based on bet amount of 1,
+  // });
 
   const payload = {
     command: "spin",
@@ -384,7 +354,7 @@ export async function spin(betAmount) {
       command: "spin",
       state: "closed",
     },
-    outcome,
+    ...outcome,
   };
 }
 

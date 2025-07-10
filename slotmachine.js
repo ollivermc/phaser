@@ -727,12 +727,10 @@ function highlightWin(outcome, features) {
           // this is the large win bonus thingy; data is available in features and looks like..
           // {
           //     "bonus_data": {
-          //         "bonus_multiplier": 53,
-          //         "scatters_multiplier": 1,
-          //         "scatters_count": 3,
           //         "multiplier": 53
           //     }
           // }
+          // this should show a bonus animation before revealing the win
           console.log("Big win!!", features);
           break;
         case "line":
@@ -805,8 +803,7 @@ function resizeUI(gameSize) {
         spinButton.displayHeight,
         autoSpinButton.height,
         betButton.height,
-      ) +
-      margin;
+      ) + margin;
     const minCenterY =
       spacing + autoSpinButton.height / 2 + infoButton.height + margin;
     const centerY = Math.max(
