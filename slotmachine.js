@@ -77,6 +77,7 @@ let infoContainer;
 let paytable = {};
 let lines = [];
 let infoPage = 0;
+let bonusContainer;
 
 const symbolTextures = [
   "skateboard",
@@ -719,20 +720,22 @@ function highlightWin(outcome, features) {
     return;
   }
   clearWin();
+  const amount = outcome.win;
+  let scatter = false;
   if (outcome.wins && outcome.wins.length > 0) {
     for (const winData of outcome.wins) {
       const [winType, multiplier, line] = winData;
       switch (winType) {
-        case "scatter":
-          // this is the large win bonus thingy; data is available in features and looks like..
-          // {
-          //     "bonus_data": {
-          //         "multiplier": 53
-          //     }
-          // }
-          // this should show a bonus animation before revealing the win
-          console.log("Big win!!", features);
+        case "scatter": {
+          scatter = true;
+          const mult = features && features.bonus_data ? features.bonus_data.multiplier : null;
+          openBonusPopup.call(this, mult, () => {
+            winText.setText(`WIN ${formatCurrency(amount)}`);
+            winText.setVisible(true);
+            updateUI();
+          });
           break;
+        }
         case "line":
           winLine.lineStyle(6, 0xff0000, 1);
           winLine.beginPath();
@@ -751,9 +754,10 @@ function highlightWin(outcome, features) {
       }
     }
   }
-  const amount = outcome.win;
-  winText.setText(`WIN ${formatCurrency(amount)}`);
-  winText.setVisible(true);
+  if (!scatter) {
+    winText.setText(`WIN ${formatCurrency(amount)}`);
+    winText.setVisible(true);
+  }
 }
 
 function clearWin() {
@@ -1533,5 +1537,68 @@ function closeInfo() {
   if (infoContainer) {
     infoContainer.destroy(true);
     infoContainer = null;
+  }
+}
+
+function openBonusPopup(multiplier, onContinue) {
+  if (bonusContainer) {
+    return;
+  }
+  const scene = this;
+  const { width, height } = scene.cameras.main;
+  bonusContainer = scene.add.container(0, 0);
+
+  const bg = scene.add
+    .rectangle(width / 2, height / 2, width, height, 0x000000, 0.8)
+    .setInteractive();
+
+  const title = scene.add
+    .text(width / 2, height / 2 - 40, "BONUS!", {
+      fontSize: "64px",
+      color: "#ffff00",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
+
+  let multText = null;
+  if (multiplier) {
+    multText = scene.add
+      .text(width / 2, height / 2 + 20, `x${multiplier}`, {
+        fontSize: "32px",
+        color: "#ffffff",
+        fontFamily: "Arial",
+      })
+      .setOrigin(0.5);
+  }
+
+  const cont = scene.add
+    .text(width / 2, height / 2 + 100, "Continue", {
+      fontSize: "32px",
+      color: "#ffffff",
+      backgroundColor: "#444",
+      padding: { x: 10, y: 5 },
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true })
+    .on("pointerdown", () => {
+      closeBonusPopup.call(scene);
+      if (onContinue) {
+        onContinue();
+      }
+    });
+
+  const items = [bg, title, cont];
+  if (multText) {
+    items.splice(2, 0, multText);
+  }
+
+  bonusContainer.add(items);
+}
+
+function closeBonusPopup() {
+  if (bonusContainer) {
+    bonusContainer.destroy(true);
+    bonusContainer = null;
   }
 }
