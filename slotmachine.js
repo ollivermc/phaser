@@ -559,6 +559,7 @@ async function spin(result) {
   );
 
   balance = `${result.balance.wallet}`;
+  updateUI();
 
   for (let c = 0; c < cols; c++) {
     const reel = reels[c];
