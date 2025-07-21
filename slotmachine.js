@@ -263,10 +263,12 @@ function createWelcomeScreen() {
 
   const titleFontSize = Math.min(64, width * 0.15);
   const title = this.add
-    .text(width / 2, height / 2 - 150, "SKATE SLOTS", {
+    .text(width / 2, height / 2 - 170, "SKATE\nSLOTS", {
       fontSize: `${titleFontSize}px`,
       color: "#ffffff",
       fontFamily: "Arial Black",
+      align: "center",
+      lineSpacing: -10,
     })
     .setOrigin(0.5);
 
