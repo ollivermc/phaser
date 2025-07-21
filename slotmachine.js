@@ -183,8 +183,17 @@ function preload() {
     .setOrigin(0.5);
 
   this.load.once("filecomplete-image-logo", () => {
+    const titleFontSize = Math.min(64, width * 0.15);
+    const isLandscape = width > height;
+    const titleYOffset = isLandscape ? -70 : -100;
     logoImage = this.add
-      .image(width / 2, height / 2 - offset, "logo")
+      .text(width / 2, height / 2 + titleYOffset, "SKATE\nSLOTS", {
+        fontSize: `${titleFontSize}px`,
+        color: "#ffffff",
+        fontFamily: "Arial Black",
+        align: "center",
+        lineSpacing: -10,
+      })
       .setOrigin(0.5);
   });
   const board = this.add.rectangle(
@@ -261,11 +270,16 @@ function createWelcomeScreen() {
     .rectangle(width / 2, height / 2, width, height, 0x111111, 0.9)
     .setOrigin(0.5);
 
+  const titleFontSize = Math.min(64, width * 0.15);
+  const isLandscape = width > height;
+  const titleYOffset = isLandscape ? -120 : -170;
   const title = this.add
-    .text(width / 2, height / 2 - 150, "SKATE SLOTS", {
-      fontSize: "64px",
+    .text(width / 2, height / 2 + titleYOffset, "SKATE\nSLOTS", {
+      fontSize: `${titleFontSize}px`,
       color: "#ffffff",
       fontFamily: "Arial Black",
+      align: "center",
+      lineSpacing: -10,
     })
     .setOrigin(0.5);
 
@@ -1571,14 +1585,21 @@ function openBonusPopup(multiplier, onContinue) {
       .setOrigin(0.5);
   }
 
-  const cont = scene.add
-    .text(width / 2, height / 2 + 100, "Continue", {
-      fontSize: "32px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-      fontFamily: "Arial",
-    })
+  const buttonWidth = 200;
+  const buttonHeight = 60;
+  const contBg = scene.add
+    .nineslice(
+      width / 2,
+      height / 2 + 100,
+      "settingsPanel",
+      undefined,
+      buttonWidth,
+      buttonHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -1587,6 +1608,16 @@ function openBonusPopup(multiplier, onContinue) {
         onContinue();
       }
     });
+
+  const contText = scene.add
+    .text(width / 2, height / 2 + 100, "Continue", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
+
+  const cont = scene.add.container(0, 0, [contBg, contText]);
 
   const items = [bg, title, cont];
   if (multText) {
