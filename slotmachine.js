@@ -262,8 +262,10 @@ function createWelcomeScreen() {
     .setOrigin(0.5);
 
   const titleFontSize = Math.min(64, width * 0.15);
+  const isLandscape = width > height;
+  const titleYOffset = isLandscape ? -120 : -170;
   const title = this.add
-    .text(width / 2, height / 2 - 170, "SKATE\nSLOTS", {
+    .text(width / 2, height / 2 + titleYOffset, "SKATE\nSLOTS", {
       fontSize: `${titleFontSize}px`,
       color: "#ffffff",
       fontFamily: "Arial Black",
