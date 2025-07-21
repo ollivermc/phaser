@@ -183,8 +183,17 @@ function preload() {
     .setOrigin(0.5);
 
   this.load.once("filecomplete-image-logo", () => {
+    const titleFontSize = Math.min(64, width * 0.15);
+    const isLandscape = width > height;
+    const titleYOffset = isLandscape ? -70 : -100;
     logoImage = this.add
-      .image(width / 2, height / 2 - offset, "logo")
+      .text(width / 2, height / 2 + titleYOffset, "SKATE\nSLOTS", {
+        fontSize: `${titleFontSize}px`,
+        color: "#ffffff",
+        fontFamily: "Arial Black",
+        align: "center",
+        lineSpacing: -10,
+      })
       .setOrigin(0.5);
   });
   const board = this.add.rectangle(
