@@ -1585,14 +1585,21 @@ function openBonusPopup(multiplier, onContinue) {
       .setOrigin(0.5);
   }
 
-  const cont = scene.add
-    .text(width / 2, height / 2 + 100, "Continue", {
-      fontSize: "32px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-      fontFamily: "Arial",
-    })
+  const buttonWidth = 200;
+  const buttonHeight = 60;
+  const contBg = scene.add
+    .nineslice(
+      width / 2,
+      height / 2 + 100,
+      "settingsPanel",
+      undefined,
+      buttonWidth,
+      buttonHeight,
+      20,
+      20,
+      20,
+      20,
+    )
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -1601,6 +1608,16 @@ function openBonusPopup(multiplier, onContinue) {
         onContinue();
       }
     });
+
+  const contText = scene.add
+    .text(width / 2, height / 2 + 100, "Continue", {
+      fontSize: "32px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
+
+  const cont = scene.add.container(0, 0, [contBg, contText]);
 
   const items = [bg, title, cont];
   if (multText) {
