@@ -536,6 +536,8 @@ function startSpin(scene) {
     return;
   }
   isRequestingSpin = true;
+  balance -= currentBet;
+  updateUI();
   if (spinButton) {
     if (!autoSpin) {
       spinButton.disableInteractive();
@@ -553,6 +555,8 @@ function startSpin(scene) {
         spinButton.setAlpha(1);
         spinButton.setInteractive({ useHandCursor: true });
       }
+      balance += currentBet;
+      updateUI();
     });
 }
 
@@ -592,7 +596,8 @@ async function spin(result) {
     }),
   );
 
-  balance = `${result.balance.wallet}`;
+  balance = result.balance.wallet;
+  updateUI();
 
   for (let c = 0; c < cols; c++) {
     const reel = reels[c];
