@@ -35,6 +35,7 @@ const DECELERATION = 60000;
 // so it sits closer to the bottom of the screen. Reduced to keep the
 // buttons higher up when space is limited.
 const SPIN_BUTTON_OFFSET = 40;
+const BALANCE_TEXTURE_KEY = "balanceTexture";
 
 // Game settings with defaults
 const settings = {
@@ -97,7 +98,8 @@ let isRequestingSpin = false;
 let availableBets = [];
 let currentBetIndex = 0;
 let currentBet = 1;
-let balanceText;
+let balanceImage;
+let balanceFontSize = 36;
 let betButton;
 let spinButton;
 let autoSpinButton;
@@ -400,11 +402,8 @@ async function startGame() {
   balance = initData.balance.wallet;
 
   // Phaser based UI
-  balanceText = this.add.text(0, 0, "", {
-    fontSize: "36px",
-    color: "#ffffff",
-    fontFamily: "Arial",
-  });
+  balanceFontSize = 36;
+  createOrUpdateBalanceImage.call(this);
 
   betButton = this.add
     .text(0, 0, "", {
@@ -495,7 +494,7 @@ async function startGame() {
     });
 
   uiContainer = this.add.container(0, 0, [
-    balanceText,
+    balanceImage,
     autoSpinButton,
     spinButton,
     betButton,
@@ -512,11 +511,43 @@ async function startGame() {
   });
 }
 
+function createOrUpdateBalanceImage() {
+  const text = formatCurrency(balance);
+  const fontSize = balanceFontSize;
+  let texture;
+  if (this.textures.exists(BALANCE_TEXTURE_KEY)) {
+    texture = this.textures.get(BALANCE_TEXTURE_KEY);
+  } else {
+    texture = this.textures.createCanvas(BALANCE_TEXTURE_KEY, 1, 1);
+  }
+  const ctx = texture.context;
+  ctx.font = `${fontSize}px Arial`;
+  const width = Math.ceil(ctx.measureText(text).width);
+  const height = Math.ceil(fontSize * 1.2);
+  if (texture.width !== width || texture.height !== height) {
+    texture.context.canvas.width = width;
+    texture.context.canvas.height = height;
+    texture.setSize(width, height);
+  } else {
+    ctx.clearRect(0, 0, width, height);
+  }
+  ctx.font = `${fontSize}px Arial`;
+  ctx.fillStyle = "#ffffff";
+  ctx.textBaseline = "top";
+  ctx.fillText(text, 0, 0);
+  texture.refresh();
+  if (!balanceImage) {
+    balanceImage = this.add.image(0, 0, BALANCE_TEXTURE_KEY);
+  } else {
+    balanceImage.setTexture(BALANCE_TEXTURE_KEY);
+  }
+}
+
 function updateUI() {
-  if (!balanceText || !betButton) {
+  if (!balanceImage || !betButton) {
     return;
   }
-  balanceText.setText(`${formatCurrency(balance)}`);
+  createOrUpdateBalanceImage.call(this);
   betButton.setText(`${formatCurrency(currentBet)}`);
 }
 
@@ -806,7 +837,7 @@ function clearWin() {
 function resizeUI(gameSize) {
   if (
     !spinButton ||
-    !balanceText ||
+    !balanceImage ||
     !betButton ||
     !autoSpinButton ||
     !settingsButton ||
@@ -827,13 +858,14 @@ function resizeUI(gameSize) {
     autoSpinButton.setOrigin(right ? 1 : 0, 0.5);
     betButton.setOrigin(right ? 1 : 0, 0.5);
     // Position balance in bottom-left corner for landscape layout
-    balanceText.setOrigin(0, 1);
+    balanceImage.setOrigin(0, 1);
     settingsButton.setOrigin(right ? 0 : 1, 0);
     infoButton.setOrigin(right ? 1 : 0, 0);
 
     autoSpinButton.setFontSize(28 * scaleFactor);
     betButton.setFontSize(28 * scaleFactor);
-    balanceText.setFontSize(28 * scaleFactor);
+    balanceFontSize = 28 * scaleFactor;
+    createOrUpdateBalanceImage.call(this);
     infoButton.setFontSize(48 * scaleFactor);
 
     const spacing =
@@ -853,7 +885,7 @@ function resizeUI(gameSize) {
     betButton.setPosition(uiX, centerY + spacing);
     const balanceX = margin;
     const balanceY = height - margin;
-    balanceText.setPosition(balanceX, balanceY);
+    balanceImage.setPosition(balanceX, balanceY);
     settingsButton.setPosition(settingsX, margin);
     infoButton.setPosition(infoX, margin);
   } else {
@@ -861,13 +893,14 @@ function resizeUI(gameSize) {
     spinButton.setOrigin(0.5, 1);
     autoSpinButton.setOrigin(0.5, 1);
     betButton.setOrigin(0.5, 1);
-    balanceText.setOrigin(0, 1);
+    balanceImage.setOrigin(0, 1);
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
     infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
 
     autoSpinButton.setFontSize(40 * scaleFactor);
     betButton.setFontSize(40 * scaleFactor);
-    balanceText.setFontSize(40 * scaleFactor);
+    balanceFontSize = 40 * scaleFactor;
+    createOrUpdateBalanceImage.call(this);
     infoButton.setFontSize(72 * scaleFactor);
 
     const totalWidth =
@@ -880,7 +913,7 @@ function resizeUI(gameSize) {
     x += spinButton.displayWidth / 2 + gap + betButton.width / 2;
     betButton.setPosition(x, bottom);
     const balanceOffset = 80;
-    balanceText.setPosition(margin, bottom - balanceOffset);
+    balanceImage.setPosition(margin, bottom - balanceOffset);
     const settingsX = settings.rightHand ? margin : width - margin;
     const infoX = settings.rightHand ? width - margin : margin;
     settingsButton.setPosition(settingsX, margin);
@@ -907,7 +940,7 @@ function layoutGame(gameSize) {
         spinButton.displayWidth,
         autoSpinButton.width,
         betButton.width,
-        balanceText.width,
+        balanceImage.width,
         settingsButton.width,
         infoButton.width,
       ) +
