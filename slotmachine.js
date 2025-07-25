@@ -1135,8 +1135,6 @@ function openBetMenu() {
   const style = {
     fontSize: "24px",
     color: "#ffffff",
-    backgroundColor: "#444",
-    padding: { x: 10, y: 5 },
     fontFamily: "Arial",
   };
 
@@ -1153,8 +1151,19 @@ function openBetMenu() {
       spacing +
       row * (buttonHeight + spacing) +
       buttonHeight / 2;
-    const text = this.add
-      .text(x, y, `${formatCurrency(bet)}`, style)
+    const buttonBg = this.add
+      .nineslice(
+        x,
+        y,
+        "settingsPanel",
+        undefined,
+        buttonWidth,
+        buttonHeight,
+        20,
+        20,
+        20,
+        20,
+      )
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
@@ -1163,7 +1172,13 @@ function openBetMenu() {
         updateUI();
         closeBetMenu.call(this);
       });
-    panel.add(text);
+
+    const buttonText = this.add
+      .text(x, y, `${formatCurrency(bet)}`, style)
+      .setOrigin(0.5);
+
+    panel.add(buttonBg);
+    panel.add(buttonText);
   });
   betMenuContainer.add([bg, panel]);
 }
