@@ -1237,8 +1237,6 @@ function openAutoSpinMenu() {
   const style = {
     fontSize: "24px",
     color: "#ffffff",
-    backgroundColor: "#444",
-    padding: { x: 10, y: 5 },
     fontFamily: "Arial",
   };
 
@@ -1256,8 +1254,19 @@ function openAutoSpinMenu() {
       row * (buttonHeight + spacing) +
       buttonHeight / 2;
     const label = `${opt}`;
-    const text = this.add
-      .text(x, y, label, style)
+    const buttonBg = this.add
+      .nineslice(
+        x,
+        y,
+        "settingsPanel",
+        undefined,
+        buttonWidth,
+        buttonHeight,
+        20,
+        20,
+        20,
+        20,
+      )
       .setOrigin(0.5)
       .setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
@@ -1270,6 +1279,11 @@ function openAutoSpinMenu() {
           startSpin(this);
         }
       });
+    const text = this.add
+      .text(x, y, label, style)
+      .setOrigin(0.5);
+
+    panel.add(buttonBg);
     panel.add(text);
   });
 
