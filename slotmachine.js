@@ -240,6 +240,7 @@ function preload() {
   });
 
   this.load.image("spin", "assets/ui/spin.png");
+  this.load.image("startButton", "assets/ui/start_button.png");
   this.load.image("settingsPanel", "assets/ui/settings_panel.png");
   this.load.image("betPanel", "assets/ui/bet_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
@@ -288,15 +289,30 @@ function createWelcomeScreen() {
     .setScale(0.6)
     .setOrigin(0.5);
 
-  const startButton = this.add
-    .text(width / 2, height - 100, "START", {
+  const startButton = this.add.container(width / 2, height - 100);
+  const startBg = this.add
+    .nineslice(
+      0,
+      0,
+      "startButton",
+      undefined,
+      200,
+      80,
+      20,
+      20,
+      20,
+      20,
+    )
+    .setOrigin(0.5);
+  const startLabel = this.add
+    .text(0, 0, "START", {
       fontSize: "48px",
       color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
+      fontFamily: "Arial Black",
     })
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true });
+    .setOrigin(0.5);
+  startButton.add([startBg, startLabel]);
+  startButton.setSize(200, 80).setInteractive({ useHandCursor: true });
 
   const symbols = ["helmet", "shoe", "can", "badge"];
   symbols.forEach((key, idx) => {
