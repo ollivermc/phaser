@@ -152,6 +152,7 @@ let currency;
 let lastResult = null;
 let winLine;
 let winText;
+let winBg;
 const offset = 100;
 let spriteScale = 0.3;
 
@@ -396,6 +397,12 @@ async function startGame() {
     .setOrigin(0.5)
     .setVisible(false);
   winText.setShadow(0, 0, "#ffff00", 10, true, true);
+  winBg = this.add
+    .image(this.cameras.main.width / 2, 80, "settingsPanel")
+    .setOrigin(0.5)
+    .setVisible(false);
+  winBg.displayWidth = 300;
+  winBg.displayHeight = 120;
 
   balance = initData.balance.wallet;
 
@@ -765,6 +772,8 @@ function highlightWin(outcome, features) {
           const mult = features && features.bonus_data ? features.bonus_data.multiplier : null;
           openBonusPopup.call(this, mult, () => {
             winText.setText(`WIN ${formatCurrency(amount)}`);
+            winBg.setDisplaySize(winText.width + 40, winText.height + 40);
+            winBg.setVisible(true);
             winText.setVisible(true);
             updateUI();
           });
@@ -790,6 +799,8 @@ function highlightWin(outcome, features) {
   }
   if (!scatter) {
     winText.setText(`WIN ${formatCurrency(amount)}`);
+    winBg.setDisplaySize(winText.width + 40, winText.height + 40);
+    winBg.setVisible(true);
     winText.setVisible(true);
   }
 }
@@ -800,6 +811,9 @@ function clearWin() {
   }
   if (winText) {
     winText.setVisible(false);
+  }
+  if (winBg) {
+    winBg.setVisible(false);
   }
 }
 
@@ -943,7 +957,13 @@ function layoutGame(gameSize) {
   }
   if (winText) {
     const reelsCenter = startX + ((cols - 1) * scaledReelWidth) / 2;
-    winText.setPosition(reelsCenter, 80);
+    const reelsMiddle = centerY;
+    winText.setPosition(reelsCenter, reelsMiddle);
+    if (winBg) {
+      const padding = 40 * scaleFactor;
+      winBg.setPosition(reelsCenter, reelsMiddle);
+      winBg.setDisplaySize(winText.width + padding, winText.height + padding);
+    }
   }
   if (winLine) {
     winLine.clear();
