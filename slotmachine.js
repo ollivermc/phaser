@@ -101,6 +101,7 @@ let balanceText;
 let betButton;
 let spinButton;
 let autoSpinButton;
+let autoSpinLabel;
 let autoSpin = false;
 let autoSpinCount = 0;
 let autoSpinMenuContainer;
@@ -240,6 +241,8 @@ function preload() {
   });
 
   this.load.image("spin", "assets/ui/spin.png");
+  this.load.image("autoSpinButton", "assets/ui/autospin_button.png");
+  this.load.image("startButton", "assets/ui/start_button.png");
   this.load.image("settingsPanel", "assets/ui/settings_panel.png");
   this.load.image("betPanel", "assets/ui/bet_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
@@ -288,15 +291,30 @@ function createWelcomeScreen() {
     .setScale(0.6)
     .setOrigin(0.5);
 
-  const startButton = this.add
-    .text(width / 2, height - 100, "START", {
+  const startButton = this.add.container(width / 2, height - 100);
+  const startBg = this.add
+    .nineslice(
+      0,
+      0,
+      "startButton",
+      undefined,
+      200,
+      80,
+      20,
+      20,
+      20,
+      20,
+    )
+    .setOrigin(0.5);
+  const startLabel = this.add
+    .text(0, 0, "START", {
       fontSize: "48px",
       color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
+      fontFamily: "Arial Black",
     })
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true });
+    .setOrigin(0.5);
+  startButton.add([startBg, startLabel]);
+  startButton.setSize(200, 80).setInteractive({ useHandCursor: true });
 
   const symbols = ["helmet", "shoe", "can", "badge"];
   symbols.forEach((key, idx) => {
@@ -428,14 +446,31 @@ async function startGame() {
       }
     });
 
-  autoSpinButton = this.add
+  autoSpinButton = this.add.container(0, 0);
+  const autoSpinBg = this.add
+    .nineslice(
+      0,
+      0,
+      "autoSpinButton",
+      undefined,
+      200,
+      60,
+      20,
+      20,
+      20,
+      20,
+    )
+    .setOrigin(0.5);
+  autoSpinLabel = this.add
     .text(0, 0, "AUTO OFF", {
       fontSize: "36px",
       color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
+      fontFamily: "Arial Black",
     })
-    .setOrigin(0.5)
+    .setOrigin(0.5);
+  autoSpinButton.add([autoSpinBg, autoSpinLabel]);
+  autoSpinButton
+    .setSize(200, 60)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
       if (autoSpinMenuContainer) {
@@ -501,12 +536,12 @@ function updateUI() {
 }
 
 function updateAutoSpinButton() {
-  if (autoSpinButton) {
+  if (autoSpinLabel) {
     if (autoSpin && autoSpinCount !== 0) {
       const label = autoSpinCount === Infinity ? "∞" : `${autoSpinCount}`;
-      autoSpinButton.setText(`AUTO ${label}`);
+      autoSpinLabel.setText(`AUTO ${label}`);
     } else {
-      autoSpinButton.setText("AUTO OFF");
+      autoSpinLabel.setText("AUTO OFF");
     }
   }
 }
@@ -811,7 +846,7 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(right ? 0 : 1, 0);
     infoButton.setOrigin(right ? 1 : 0, 0);
 
-    autoSpinButton.setFontSize(28 * scaleFactor);
+    autoSpinLabel.setFontSize(28 * scaleFactor);
     betButton.setFontSize(28 * scaleFactor);
     balanceText.setFontSize(28 * scaleFactor);
     infoButton.setFontSize(48 * scaleFactor);
@@ -845,7 +880,7 @@ function resizeUI(gameSize) {
     settingsButton.setOrigin(settings.rightHand ? 0 : 1, 0);
     infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
 
-    autoSpinButton.setFontSize(40 * scaleFactor);
+    autoSpinLabel.setFontSize(40 * scaleFactor);
     betButton.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
     infoButton.setFontSize(72 * scaleFactor);
