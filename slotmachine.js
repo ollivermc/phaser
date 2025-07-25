@@ -241,6 +241,7 @@ function preload() {
 
   this.load.image("spin", "assets/ui/spin.png");
   this.load.image("settingsPanel", "assets/ui/settings_panel.png");
+  this.load.image("closeButton", "assets/ui/close.png");
   this.load.image("betPanel", "assets/ui/bet_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
   this.load.image("skate", "assets/symbols/sliced_skate_image_2.png");
@@ -259,6 +260,7 @@ function preload() {
 }
 
 function create() {
+  ensureCloseButtonTexture(this);
   createWelcomeScreen.call(this);
 }
 
@@ -1054,12 +1056,18 @@ function openSettings() {
   });
 
   const closeBtn = this.add
-    .text(0, panelHeight / 2 - 10, "Close", {
-      fontSize: "28px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-    })
+    .nineslice(
+      0,
+      panelHeight / 2 - 30,
+      "closeButton",
+      undefined,
+      40,
+      40,
+      10,
+      10,
+      10,
+      10,
+    )
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -1578,12 +1586,18 @@ function openInfo(page = 0) {
   }
 
   const closeBtn = this.add
-    .text(0, panelHeight / 2 - 30, "Close", {
-      fontSize: "28px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-    })
+    .nineslice(
+      0,
+      panelHeight / 2 - 30,
+      "closeButton",
+      undefined,
+      40,
+      40,
+      10,
+      10,
+      10,
+      10,
+    )
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -1679,4 +1693,23 @@ function closeBonusPopup() {
     bonusContainer.destroy(true);
     bonusContainer = null;
   }
+}
+
+function ensureCloseButtonTexture(scene) {
+  if (scene.textures.exists("closeButton")) {
+    return;
+  }
+  const size = 40;
+  const g = scene.make.graphics({ x: 0, y: 0, add: false });
+  g.fillStyle(0x555555, 1);
+  g.fillRect(0, 0, size, size);
+  g.lineStyle(4, 0xffffff, 1);
+  g.beginPath();
+  g.moveTo(8, 8);
+  g.lineTo(size - 8, size - 8);
+  g.moveTo(size - 8, 8);
+  g.lineTo(8, size - 8);
+  g.strokePath();
+  g.generateTexture("closeButton", size, size);
+  g.destroy();
 }
