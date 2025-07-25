@@ -1525,13 +1525,18 @@ function openInfo(page = 0) {
     });
 
     const infoText = this.add
-      .text(0, panelHeight / 2 - 80, "Match 3 symbols on a line to win.", {
-        fontSize: "20px",
-        color: "#ffffff",
-        fontFamily: "Arial",
-        align: "center",
-        wordWrap: { width: panelWidth - 40 },
-      })
+      .text(
+        0,
+        panelHeight / 2 - 90,
+        "Match 3 symbols on a line to win.\nThree scatter symbols trigger a bonus win.",
+        {
+          fontSize: "20px",
+          color: "#ffffff",
+          fontFamily: "Arial",
+          align: "center",
+          wordWrap: { width: panelWidth - 40 },
+        },
+      )
       .setOrigin(0.5);
     panel.add(infoText);
   } else {
