@@ -92,6 +92,7 @@ const symbolTextures = [
 ];
 
 const reels = [];
+let reelsBg;
 let isSpinning = false;
 let isRequestingSpin = false;
 let availableBets = [];
@@ -241,6 +242,7 @@ function preload() {
 
   this.load.image("spin", "assets/ui/spin.png");
   this.load.image("settingsPanel", "assets/ui/settings_panel.png");
+  this.load.image("reelsBg", "assets/ui/reels.png");
   this.load.image("closeButton", "assets/ui/close.png");
   this.load.image("betPanel", "assets/ui/bet_panel.png");
   this.load.image("skateboard", "assets/symbols/sliced_skate_image_1.png");
@@ -354,6 +356,9 @@ async function startGame() {
   currentScreen = initData.options.screen.map((row) => [...row]);
   paytable = initData.options.paytable || initData.options.paytables || {};
   lines = initData.options.lines || [];
+
+  ensureReelsBgTexture(this, cols, rows);
+  reelsBg = this.add.image(0, 0, "reelsBg").setOrigin(0.5);
 
   // start background music if enabled
   if (!bgMusic) {
@@ -930,6 +935,13 @@ function layoutGame(gameSize) {
       : 80;
     centerY = (height - uiHeight) / 2;
     startX = width / 2 - ((cols - 1) * scaledReelWidth) / 2;
+  }
+  if (reelsBg) {
+    const reelsWidth = scaledReelWidth * cols;
+    const reelsHeight = scaledSymbolSpacing * rows;
+    const centerX = startX + ((cols - 1) * scaledReelWidth) / 2;
+    reelsBg.setPosition(centerX, centerY);
+    reelsBg.setDisplaySize(reelsWidth + 20, reelsHeight + 20);
   }
   for (let c = 0; c < reels.length; c++) {
     const reel = reels[c];
@@ -1716,5 +1728,25 @@ function ensureCloseButtonTexture(scene) {
   g.lineTo(8, size - 8);
   g.strokePath();
   g.generateTexture("closeButton", size, size);
+  g.destroy();
+}
+
+function ensureReelsBgTexture(scene, cols, rows) {
+  if (scene.textures.exists("reelsBg")) {
+    return;
+  }
+  const width = REEL_WIDTH * cols + 20;
+  const height = SYMBOL_SPACING * rows + 20;
+  const g = scene.make.graphics({ x: 0, y: 0, add: false });
+  g.fillStyle(0x222222, 1);
+  g.fillRect(0, 0, width, height);
+  g.lineStyle(2, 0xffffff, 1);
+  for (let i = 1; i < cols; i++) {
+    const x = i * REEL_WIDTH + 10;
+    g.moveTo(x, 10);
+    g.lineTo(x, height - 10);
+  }
+  g.strokePath();
+  g.generateTexture("reelsBg", width, height);
   g.destroy();
 }
