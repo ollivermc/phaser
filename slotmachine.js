@@ -99,6 +99,7 @@ let currentBetIndex = 0;
 let currentBet = 1;
 let balanceText;
 let betButton;
+let betButtonText;
 let spinButton;
 let autoSpinButton;
 let autoSpin = false;
@@ -288,15 +289,31 @@ function createWelcomeScreen() {
     .setScale(0.6)
     .setOrigin(0.5);
 
-  const startButton = this.add
+  const buttonWidth = 220;
+  const buttonHeight = 80;
+  const startBg = this.add
+    .nineslice(
+      width / 2,
+      height - 100,
+      "settingsPanel",
+      undefined,
+      buttonWidth,
+      buttonHeight,
+      20,
+      20,
+      20,
+      20,
+    )
+    .setOrigin(0.5)
+    .setInteractive({ useHandCursor: true });
+  const startText = this.add
     .text(width / 2, height - 100, "START", {
       fontSize: "48px",
       color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
+      fontFamily: "Arial",
     })
-    .setOrigin(0.5)
-    .setInteractive({ useHandCursor: true });
+    .setOrigin(0.5);
+  const startButton = this.add.container(0, 0, [startBg, startText]);
 
   const symbols = ["helmet", "shoe", "can", "badge"];
   symbols.forEach((key, idx) => {
@@ -308,7 +325,7 @@ function createWelcomeScreen() {
     container.add(sprite);
   });
 
-  startButton.on("pointerdown", () => {
+  startBg.on("pointerdown", () => {
     if (logoImage) {
       logoImage.destroy();
     }
@@ -386,13 +403,10 @@ async function startGame() {
     fontFamily: "Arial",
   });
 
-  betButton = this.add
-    .text(0, 0, "", {
-      fontSize: "36px",
-      color: "#ffffff",
-      backgroundColor: "#444",
-      padding: { x: 10, y: 5 },
-    })
+  const betButtonWidth = 160;
+  const betButtonHeight = 60;
+  const betBg = this.add
+    .nineslice(0, 0, "settingsPanel", undefined, betButtonWidth, betButtonHeight, 20, 20, 20, 20)
     .setOrigin(0.5)
     .setInteractive({ useHandCursor: true })
     .on("pointerdown", () => {
@@ -402,6 +416,17 @@ async function startGame() {
         openBetMenu.call(this);
       }
     });
+
+  betButtonText = this.add
+    .text(0, 0, "", {
+      fontSize: "36px",
+      color: "#ffffff",
+      fontFamily: "Arial",
+    })
+    .setOrigin(0.5);
+
+  betButton = this.add.container(0, 0, [betBg, betButtonText]);
+  betButton.setSize(betButtonWidth, betButtonHeight);
 
   spinButton = this.add
     .image(0, 0, "spin")
@@ -493,11 +518,11 @@ async function startGame() {
 }
 
 function updateUI() {
-  if (!balanceText || !betButton) {
+  if (!balanceText || !betButtonText) {
     return;
   }
   balanceText.setText(`${formatCurrency(balance)}`);
-  betButton.setText(`${formatCurrency(currentBet)}`);
+  betButtonText.setText(`${formatCurrency(currentBet)}`);
 }
 
 function updateAutoSpinButton() {
@@ -812,7 +837,7 @@ function resizeUI(gameSize) {
     infoButton.setOrigin(right ? 1 : 0, 0);
 
     autoSpinButton.setFontSize(28 * scaleFactor);
-    betButton.setFontSize(28 * scaleFactor);
+    betButtonText.setFontSize(28 * scaleFactor);
     balanceText.setFontSize(28 * scaleFactor);
     infoButton.setFontSize(48 * scaleFactor);
 
@@ -846,7 +871,7 @@ function resizeUI(gameSize) {
     infoButton.setOrigin(settings.rightHand ? 1 : 0, 0);
 
     autoSpinButton.setFontSize(40 * scaleFactor);
-    betButton.setFontSize(40 * scaleFactor);
+    betButtonText.setFontSize(40 * scaleFactor);
     balanceText.setFontSize(40 * scaleFactor);
     infoButton.setFontSize(72 * scaleFactor);
 
